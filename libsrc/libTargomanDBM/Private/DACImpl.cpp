@@ -202,13 +202,15 @@ qint64 DACImpl::runQueryBase(intfDACDriver* _driver,
                              const QString& _purpose,
                              quint64* _executionTime)
 {
-    if (_params.size()){
-        if(!_resultStorage.d->Query.prepare (_queryStr))
-            throw exTargomanDBMUnableToPrepareQuery(_queryStr);
+    if(!_resultStorage.d->Query.prepare (_queryStr))
+        throw exTargomanDBMUnableToPrepareQuery(_queryStr);
+
+    if (_params.size())
         foreach(auto Param, _params)
             _resultStorage.d->Query.addBindValue(Param);
-    }
+
     _resultStorage.d->AffectedRows = this->runQueryBase (_driver, _resultStorage.d->Query, _purpose, _executionTime);
+    return _resultStorage.d->AffectedRows;
 }
 
 qint64 DACImpl::runQueryBase(intfDACDriver *_driver,
@@ -218,13 +220,14 @@ qint64 DACImpl::runQueryBase(intfDACDriver *_driver,
                              const QString &_purpose,
                              quint64 *_executionTime)
 {
-    if (_params.size()){
-        if(!_resultStorage.d->Query.prepare (_queryStr))
-            throw exTargomanDBMUnableToPrepareQuery(_queryStr);
+    if(!_resultStorage.d->Query.prepare (_queryStr))
+        throw exTargomanDBMUnableToPrepareQuery(_queryStr);
+    if (_params.size())
         for(auto ParamIter = _params.begin(); ParamIter != _params.end(); ++ParamIter)
             _resultStorage.d->Query.bindValue(ParamIter.key(), ParamIter.value());
-    }
+
     _resultStorage.d->AffectedRows = this->runQueryBase (_driver, _resultStorage.d->Query, _purpose, _executionTime);
+    _resultStorage.d->AffectedRows;
 }
 
 clsDACResult DACImpl::runQuery(clsDAC &_dac,

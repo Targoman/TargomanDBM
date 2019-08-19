@@ -23,6 +23,9 @@
 #include <QThread>
 #include <QJsonValue>
 #include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+
 #include "clsDAC.h"
 #include "Private/clsDACPrivate.h"
 #include "Private/DACImpl.h"
@@ -43,11 +46,11 @@ clsDAC::~clsDAC()
 
 /* ----------------------------------------------- */
 QSqlDatabase clsDAC::getDBEngine(const QString& _domain,
-                            const QString& _entityName,
-                            const QString& _target,
-                            bool _clone,
-                            enuDBEngines::Type* _engineType,
-                            bool _returnBase)
+                                 const QString& _entityName,
+                                 const QString& _target,
+                                 bool _clone,
+                                 enuDBEngines::Type* _engineType,
+                                 bool _returnBase)
 {
     return Private::DACImpl::instance().getDBEngine(_domain, _entityName, _target, _clone, _engineType, _returnBase);
 }
@@ -77,9 +80,9 @@ void clsDAC::addDBEngine(enuDBEngines::Type _engineType,
 
 /* ----------------------------------------------- */
 void clsDAC::setConnectionString(const QString& _conStr,
-                                    const QString& _domain,
-                                    const QString& _entityName,
-                                    const QString& _target)
+                                 const QString& _domain,
+                                 const QString& _entityName,
+                                 const QString& _target)
 {
     QSqlDatabase DB = Private::DACImpl::instance().getDBEngine(_domain, _entityName, _target,false,NULL,true);
 
@@ -136,8 +139,8 @@ void clsDAC::callSP(const QString& _agentID,
                     const QString& _purpose,
                     quint64* _executionTime)
 {
-   /* if (Private::DACImpl::instance().securityProvider()->isSPCallAllowed(_agentID, _spName, _spArgs))
-        Private::DACImpl::instance().callSP(this->pPrivate->DB, _resultStorage, _spName, _spArgs, _purpose, _executionTime);
+    /* if (Private::DACImpl::instance().securityProvider()->isSPCallAllowed(_agentID, _spName, _spArgs))
+        Private::DACImpl::instance().callSP(this->dB, _resultStorage, _spName, _spArgs, _purpose, _executionTime);
     else
         throw exTargomanDBMNotEnoughPrivileges(
                 QString("Not Enough privileges to call '%1' by %2").arg(_spName, _agentID));*/
@@ -145,10 +148,10 @@ void clsDAC::callSP(const QString& _agentID,
 
 /* ----------------------------------------------- */
 clsDACResult clsDAC::execQuery(const QString &_agentID,
-                         const QString &_queryStr,
-                         const QVariantList& _params,
-                         const QString &_purpose,
-                         quint64* _executionTime)
+                               const QString &_queryStr,
+                               const QVariantList& _params,
+                               const QString &_purpose,
+                               quint64* _executionTime)
 {
     if (Private::DACImpl::instance().securityProvider()->isQueryAllowed(_agentID, _queryStr, _params))
         return  Private::DACImpl::instance().runQuery(*this, _queryStr, _params, _purpose, _executionTime);
@@ -159,10 +162,10 @@ clsDACResult clsDAC::execQuery(const QString &_agentID,
 
 /* ----------------------------------------------- */
 clsDACResult clsDAC::execQuery(const QString &_agentID,
-                         const QString &_queryStr,
-                         const QVariantMap& _params,
-                         const QString &_purpose,
-                         quint64* _executionTime)
+                               const QString &_queryStr,
+                               const QVariantMap& _params,
+                               const QString &_purpose,
+                               quint64* _executionTime)
 {
     if (Private::DACImpl::instance().securityProvider()->isQueryAllowed(_agentID, _queryStr, _params))
         return  Private::DACImpl::instance().runQuery(*this, _queryStr, _params, _purpose, _executionTime);
@@ -196,6 +199,58 @@ Private::clsDACPrivate::clsDACPrivate(const QSqlDatabase& _db) :
 clsDACResult::clsDACResult(const QSqlDatabase &_dbc) : d(new Private::clsDACResultPrivate(_dbc)) { ; }
 
 clsDACResult::~clsDACResult() {}
+
+QJsonDocument clsDACResult::toJson(bool _justSingle)
+{
+    QJsonDocument  JSon;
+    QJsonArray     RecordsArray;
+    while(this->d->Query.next()) {
+        QJsonObject        recordObject;
+        for(int i = 0; i < this->d->Query.record().count(); ++i){
+            QVariant Value = this->d->Query.value(i);
+            QString ValueStr = Value.toString();
+
+            QJsonParseError Error;
+            if(ValueStr.size() > 5 &&
+                    *ValueStr.toLatin1().begin() == '{' &&
+                    *(ValueStr.toLatin1().end()-1) == '}'){
+                QJsonDocument Doc = QJsonDocument::fromJson(ValueStr.toUtf8(), &Error);
+                if(Error.error == QJsonParseError::NoError){
+                    recordObject.insert(this->d->Query.record().fieldName(i),
+                                        Doc.object()
+                                        );
+                    continue;
+                }
+            }
+            if (ValueStr.size() > 3 &&
+                    *ValueStr.toLatin1().begin() == '[' &&
+                    *(ValueStr.toLatin1().end()-1)== ']'){
+                QJsonDocument Doc = QJsonDocument::fromJson(ValueStr.toUtf8(), &Error);
+                if(Error.error == QJsonParseError::NoError){
+                    recordObject.insert(this->d->Query.record().fieldName(i),
+                                        Doc.array()
+                                        );
+                    continue;
+                }
+
+            }
+            recordObject.insert( this->d->Query.record().fieldName(i),
+                                 QJsonValue::fromVariant(Value) );
+        }
+
+        RecordsArray.push_back(recordObject);
+    }
+
+    if(_justSingle){
+        if(RecordsArray.count() > 0)
+            JSon.setObject(RecordsArray.at(0).toObject());
+        else
+            JSon.setObject(QJsonObject());
+    }else
+        JSon.setArray(RecordsArray);
+
+    return JSon;
+}
 
 /*int clsDACResult::at()
 {

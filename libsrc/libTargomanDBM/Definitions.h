@@ -22,6 +22,7 @@
 
 #include <QString>
 #include <QSqlDatabase>
+#include <QJsonDocument>
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QVariantHash>
@@ -170,6 +171,8 @@ public:
     QVariant value(const QString& _colName) const;
     int colIndex(const QString& _colName);
     */
+
+    QJsonDocument toJson(bool _justSingle);
 private:
     QSharedDataPointer<Private::clsDACResultPrivate> d;
     friend class Targoman::DBManager::Private::DACImpl;
