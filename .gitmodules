@@ -1,0 +1,3 @@
+[submodule "3rdParty/TargomanCommon"]
+	path = 3rdParty/TargomanCommon
+	url = https://github.com/Targoman/TargomanCommon.git
