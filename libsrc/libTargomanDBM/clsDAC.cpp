@@ -201,7 +201,7 @@ clsDACResult::~clsDACResult() {}
 
 QJsonDocument clsDACResult::toJson(bool _justSingle)
 {
-    QJsonDocument  JSon;
+    QJsonDocument  Json;
     QJsonArray     RecordsArray;
     while(this->d->Query.next()) {
         QJsonObject        recordObject;
@@ -240,15 +240,20 @@ QJsonDocument clsDACResult::toJson(bool _justSingle)
         RecordsArray.push_back(recordObject);
     }
 
-    if(_justSingle){
+    if(this->d->WasSP){
+        Json.setObject({
+                           {"rows", RecordsArray},
+                           {"direct", QJsonDocument::fromVariant(this->d->SPDirectOutputs).object()}
+                       });
+    }else if(_justSingle){
         if(RecordsArray.count() > 0)
-            JSon.setObject(RecordsArray.at(0).toObject());
+            Json.setObject(RecordsArray.at(0).toObject());
         else
-            JSon.setObject(QJsonObject());
+            Json.setObject(QJsonObject());
     }else
-        JSon.setArray(RecordsArray);
+        Json.setArray(RecordsArray);
 
-    return JSon;
+    return Json;
 }
 
 int clsDACResult::at()

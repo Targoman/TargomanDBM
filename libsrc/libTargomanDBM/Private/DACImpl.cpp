@@ -320,6 +320,7 @@ clsDACResult DACImpl::callSP(clsDAC &_dac,
     quint8 Retries=0;
     intfDACDriver* Driver = _dac.pPrivate->Driver;
     clsDACResult Result(DBC);
+    Result.d->WasSP = true;
 
     while (true) {
         try{

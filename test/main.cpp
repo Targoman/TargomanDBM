@@ -25,15 +25,17 @@
 #include <unistd.h>
 #include "libTargomanDBM/clsDAC.h"
 #include "libTargomanCommon/CmdIO.h"
-
+#include "libTargomanCommon/Logger.h"
 
 using namespace Targoman::DBManager;
 int main(int argc, char *argv[])
 {
+    Targoman::Common::Logger::instance().setVisible(true);
     Q_UNUSED(argc); Q_UNUSED(argv);
     try{
+
         clsDAC::addDBEngine (enuDBEngines::MySQL);
-        clsDAC::setConnectionString ("HOST=172.17.0.1;PORT=3316;USER=root;PASSWORD=1;SCHEMA=mysql");
+        clsDAC::setConnectionString ("HOST=172.17.0.1;PORT=3306;USER=root;PASSWORD=1;SCHEMA=mysql");
 
         clsDAC DAC;
         qDebug("%s\n",DAC.execQuery("", "SELECT * FROM user")
@@ -51,7 +53,9 @@ int main(int argc, char *argv[])
         qDebug("***************************");
         qDebug("%s\n",DAC.callSP ("","Test.spJustDirectOut").toJson(false).toJson().constData());
         qDebug("***************************");
-        qDebug("%s\n",DAC.callSP ("","Test.spFullInOut", {{"Param1","dadsad"}, {"Param2", "eqwe"}}).toJson(false).toJson().constData());
+        qDebug("%s\n",DAC.callSP ("","Test.spFullInOut", {{"Param1","1"}, {"Param3", " test"}}).toJson(false).toJson().constData());
+        qDebug("***************************");
+        qDebug("%s\n",DAC.callSP ("","Test.spFullInOut", {{"Param1","1"}, {"Param2", " test"}}).toJson(false).toJson().constData());
     }catch(std::exception &e){
         TargomanError(e.what());
         return 1;
