@@ -64,8 +64,8 @@ namespace Private{
 class clsNullDACSecurity: public intfDACSecurity
 {
 public:
-    inline clsNullDACSecurity(){}
-    inline virtual ~clsNullDACSecurity(){}
+    clsNullDACSecurity(){}
+    virtual ~clsNullDACSecurity(){}
     inline bool isSPCallAllowed(const QString&/*_operatorID*/,
                                 const QString& /*_sp*/,
                                 const QVariantMap& /*_params*/)
@@ -127,7 +127,7 @@ QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entity
                 QString ThreadSafeConnection = _checkStr;
                 if (QSqlDatabase::contains(
                             ThreadSafeConnection.replace(DEFAULT_DB_NAME,
-                                                         DEFAULT_DB_NAME + QString("^%1^").arg((quint64)QThread::currentThreadId()))))
+                                                         DEFAULT_DB_NAME + QString("^%1^").arg(reinterpret_cast<quint64>(QThread::currentThreadId())))))
                     DB = QSqlDatabase::database(ThreadSafeConnection, false);
                 else
                     DB = QSqlDatabase::cloneDatabase(QSqlDatabase::database(Connection, false), ThreadSafeConnection);
@@ -169,7 +169,7 @@ qint64 DACImpl::runQueryBase(intfDACDriver* _driver,
         QTime Timer;
         Timer.start();
         Result = _sqlQuery.exec();
-        *_executionTime = Timer.elapsed();
+        *_executionTime = static_cast<quint64>(Timer.elapsed());
     }else
         Result = _sqlQuery.exec();
 
@@ -226,7 +226,7 @@ qint64 DACImpl::runQueryBase(intfDACDriver *_driver,
             _resultStorage.d->Query.bindValue(ParamIter.key(), ParamIter.value());
 
     _resultStorage.d->AffectedRows = this->runQueryBase (_driver, _resultStorage.d->Query, _purpose, _executionTime);
-    _resultStorage.d->AffectedRows;
+    return _resultStorage.d->AffectedRows;
 }
 
 clsDACResult DACImpl::runQuery(clsDAC &_dac,
@@ -251,7 +251,7 @@ clsDACResult DACImpl::runQuery(clsDAC &_dac,
 
             this->runQueryBase(_dac.pPrivate->Driver, Result, _queryStr, _params, _purpose);
             if(_executionTime)
-                *_executionTime = Timer.elapsed();
+                *_executionTime = static_cast<quint64>(Timer.elapsed());
             return Result;
         }catch(exTargomanDBMConnectionLost){
             if (Retries++ > 2)
@@ -288,7 +288,7 @@ clsDACResult DACImpl::runQuery(clsDAC &_dac,
 
             this->runQueryBase(_dac.pPrivate->Driver, Result, _queryStr, _params, _purpose);
             if(_executionTime)
-                *_executionTime = Timer.elapsed();
+                *_executionTime = static_cast<quint64>(Timer.elapsed());
             return Result;
         }catch(exTargomanDBMConnectionLost){
             if (Retries++ > 2)
@@ -304,11 +304,11 @@ clsDACResult DACImpl::runQuery(clsDAC &_dac,
     }
 }
 
-void DACImpl::callSP(clsDAC &_dac,
-                     const QString& _spName,
-                     const QVariantList &_spArgs,
-                     const QString& _purpose,
-                     quint64* _executionTime)
+clsDACResult DACImpl::callSP(clsDAC &_dac,
+                             const QString& _spName,
+                             const QVariantMap &_spArgs,
+                             const QString& _purpose,
+                             quint64* _executionTime)
 {
     QTime Timer;
     if(_executionTime)
@@ -325,69 +325,68 @@ void DACImpl::callSP(clsDAC &_dac,
         try{
             clsDACPrivate_OpenDB(DBC);
 
-            SPParams_t SPParams = Driver->getSPParams(Result.d->Query,
-                                                      DBC.databaseName(),
-                                                      _spName);
+            SPParams_t SPParams = this->getSPParams(Driver,
+                                                    Result.d->Query,
+                                                    DBC.databaseName(),
+                                                    _spName);
 
             QStringList BoundingVars;
             QStringList QueryStrings = Driver->bindSPQuery(_spName, SPParams, _spArgs, BoundingVars);
 
             foreach (const QString& QueryStr, QueryStrings) {
-                this->runQueryBase(_dac.pPrivate->Driver, Result, _queryStr, _params, _purpose, _executionTime);
-                this->runQuery(_sqlQuery, QueryStr, _purpose, _executionTime);
+                this->runQueryBase(_dac.pPrivate->Driver, Result, QueryStr, QVariantList(), _purpose, _executionTime);
                 if (_executionTime)
                     FirstExecutionTime += *_executionTime;
             }
 
             if (BoundingVars.size()) {
-                QSqlQuery Query(_dac);
-
                 QString QueryStr = Driver->boundSPQuery(_spName, BoundingVars);
-                this->runQuery(&Query, QueryStr, _purpose, _executionTime);
+                clsDACResult BoundingResult(DBC);
+                this->runQueryBase(_dac.pPrivate->Driver, BoundingResult, QueryStr, QVariantList(), _purpose, _executionTime);
 
                 if (_executionTime)
                     *_executionTime += FirstExecutionTime;
 
-                if (_spOutputs) {
-                    _spOutputs->clear();
-                    if(Query.first()) {
-                        for(int i=0; i< BoundingVars.size(); i++) {
-                            if (_purpose == "[NO_LOG]")
-                                TargomanDebug(6,QString("\t%1 : <%2>").arg(QString(BoundingVars.at(i)).remove(
-                                                                               0, DEFAULT_OUTVAR_PATTERN.size()), Query.value(i).toString()).toUtf8().constData())
-                                        else
-                                        TargomanLogDebug(6,QString("\t%1 : <%2>").arg(QString(BoundingVars.at(i)).remove(
-                                                                                          0, DEFAULT_OUTVAR_PATTERN.size()), Query.value(i).toString()))
-
-                                        _spOutputs->insert(
-                                            QString(BoundingVars.at(i)).remove(
-                                                0, DEFAULT_OUTVAR_PATTERN.size()), Query.value(i));
+                Result.d->SPDirectOutputs.clear();
+                if(BoundingResult.first()){
+                    for(int i=0; i< BoundingVars.size(); i++) {
+                        if (_purpose == "[NO_LOG]"){
+                            TargomanDebug(6,QString("\t%1 : <%2>").arg(QString(BoundingVars.at(i)).remove(0, DEFAULT_OUTVAR_PATTERN.size()),
+                                                                       BoundingResult.value(i).toString()).toUtf8().constData())
+                        }else{
+                            TargomanLogDebug(6,QString("\t%1 : <%2>").arg(QString(BoundingVars.at(i)).remove(0, DEFAULT_OUTVAR_PATTERN.size()),
+                                                                          BoundingResult.value(i).toString()))
                         }
+                        Result.d->SPDirectOutputs.insert(
+                                    QString(BoundingVars.at(i)).remove(0, DEFAULT_OUTVAR_PATTERN.size()), BoundingResult.value(i));
                     }
                 }
+
             }
             break;
         }catch(exTargomanDBMConnectionLost){
             if (Retries++ > 2)
                 throw;
-            if (_purpose == "[NO_LOG]")
+            if (_purpose == "[NO_LOG]"){
                 TargomanDebug(5, QString("%2: Retried CallSP: %1").arg(_spName,_purpose).toUtf8().constData())
-                        else
-                        TargomanLogDebug(5, QString("%2: Retried CallSP: %1").arg(_spName,_purpose))
-                        DBC.close();
+            }else{
+                TargomanLogDebug(5, QString("%2: Retried CallSP: %1").arg(_spName,_purpose))
+            }
+            DBC.close();
             usleep(50000);
         }
     }
+    return Result;
 }
 
 void DACImpl::setSecurityProvider(intfDACSecurity* _securityProvider)
 {
-    if(dynamic_cast<intfDACSecurity*>(_securityProvider) == NULL)
+    if(dynamic_cast<intfDACSecurity*>(_securityProvider) == nullptr)
         throw exTargomanDBM("Invalid Security Provider pointer");
 
-    if (dynamic_cast<clsNullDACSecurity*>(this->SecurityProvider) != NULL) {
+    if (dynamic_cast<clsNullDACSecurity*>(this->SecurityProvider) != nullptr) {
         delete static_cast<clsNullDACSecurity*>(this->SecurityProvider);
-        this->SecurityProvider = NULL;
+        this->SecurityProvider = nullptr;
     }
 
     //Just clsNullTCPServerSecurity Provider can be changed runtime
@@ -413,7 +412,7 @@ intfDACDriver *DACImpl::driver(const QString _driverName)
 }
 
 SPParams_t DACImpl::getSPParams(intfDACDriver* _driver,
-                                QSqlQuery *_connectedQuery,
+                                QSqlQuery &_connectedQuery,
                                 const QString& _schema,
                                 const QString& _spName)
 {
@@ -433,15 +432,13 @@ QStringList DACImpl::whichOnesAreUpdated(const QSqlDatabase &_dbc,
 
 void DACImpl::purgeConnections()
 {
-    while(!this->ShuttingDown)
-    {
+    while(!this->ShuttingDown) {
         sleep(10); //Check every 10 Seconds
         QStringList ToBeRemoved;
         for(QHash<QString,QDateTime>::iterator CacheIter= this->DBCAccessCache.begin();
             CacheIter != this->DBCAccessCache.end();
             CacheIter++) {
-            if (QDateTime::currentDateTime().secsTo(CacheIter.value()) < -60) //Close connections which was not active for more than 60 secs
-            {
+            if (QDateTime::currentDateTime().secsTo(CacheIter.value()) < -60) { //Close connections which was not active for more than 60 secs
                 ToBeRemoved.append(CacheIter.key());
                 QMutexLocker QLocker(this->getCurrConnectionLock(CacheIter.key()));
                 QSqlDatabase::database(CacheIter.key()).close();
@@ -462,9 +459,9 @@ QSqlDatabase DACImpl::getThreadDBC(const QSqlDatabase &_dbc)
 {
     QString ThreadSafeConnName = _dbc.connectionName().replace(
                 DEFAULT_DB_NAME,
-                QString("%1^%2^").arg(DEFAULT_DB_NAME).arg((quint64)QThread::currentThreadId()));
+                QString("%1^%2^").arg(DEFAULT_DB_NAME).arg(reinterpret_cast<quint64>(QThread::currentThreadId())));
 
-    if (_dbc.connectionName().contains(QString("^%1^").arg((quint64)QThread::currentThreadId())))
+    if (_dbc.connectionName().contains(QString("^%1^").arg(reinterpret_cast<quint64>(QThread::currentThreadId()))))
         return _dbc;
     else {
         QSqlDatabase DBC = QSqlDatabase::database(ThreadSafeConnName);
@@ -478,8 +475,8 @@ QSqlDatabase DACImpl::getThreadDBC(const QSqlDatabase &_dbc)
 QMutex *DACImpl::getCurrConnectionLock(const QString &_conName)
 {
     QMutexLocker ConPoolLocker(&this->mxConnectionList);
-    QMutex* mxCurrConnectionLock = this->RunningQueryLocks.value(_conName, NULL);
-    if (mxCurrConnectionLock == NULL) {
+    QMutex* mxCurrConnectionLock = this->RunningQueryLocks.value(_conName, nullptr);
+    if (mxCurrConnectionLock == nullptr) {
         mxCurrConnectionLock = new QMutex;
         this->RunningQueryLocks.insert(_conName, mxCurrConnectionLock);
     }

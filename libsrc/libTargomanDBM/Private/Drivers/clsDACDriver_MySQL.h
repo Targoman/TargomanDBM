@@ -39,7 +39,7 @@ public:
 
     QStringList bindSPQuery(const QString& _spName,
                         const SPParams_t &_spParams,
-                        const QVariantList& _spArgs,
+                        const QVariantMap &_spArgs,
                         QStringList& _boundingVars);
 
     QString boundSPQuery(const QString& _spName,

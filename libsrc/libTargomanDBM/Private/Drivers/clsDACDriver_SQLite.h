@@ -38,7 +38,7 @@ public:
 
     QStringList bindSPQuery(const QString& _spName,
                             const SPParams_t &_spParams,
-                            const QVariantList& _spArgs,
+                            const QVariantMap& _spArgs,
                             QStringList& _boundingVars)
     {Q_UNUSED(_spName); Q_UNUSED(_spParams); Q_UNUSED(_spArgs) Q_UNUSED(_boundingVars); throw Common::exTargomanNotImplemented("SQLite Driver has not yet been developped");}
 

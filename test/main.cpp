@@ -33,18 +33,25 @@ int main(int argc, char *argv[])
     Q_UNUSED(argc); Q_UNUSED(argv);
     try{
         clsDAC::addDBEngine (enuDBEngines::MySQL);
-        clsDAC::setConnectionString ("HOST=127.0.0.1;PORT=3306;USER=root;PASSWORD=1;SCHEMA=mysql");
+        clsDAC::setConnectionString ("HOST=172.17.0.1;PORT=3316;USER=root;PASSWORD=1;SCHEMA=mysql");
 
         clsDAC DAC;
-        qDebug(DAC.execQuery("", "SELECT * FROM user")
+        qDebug("%s\n",DAC.execQuery("", "SELECT * FROM user")
                 .toJson(false).toJson().constData());
         qDebug("***************************");
-        qDebug(DAC.execQuery("", "SELECT * FROM user WHERE user.User=?",{{"root"}})
+        qDebug("%s\n",DAC.execQuery("", "SELECT * FROM user WHERE user.User=?",{{"root"}})
                .toJson(false).toJson().constData());
         qDebug("***************************");
-        qDebug(DAC.execQuery("", "SELECT * FROM user WHERE user.User=:user",QVariantMap({{":user","root"}}))
+        qDebug("%s\n",DAC.execQuery("", "SELECT * FROM user WHERE user.User=:user",QVariantMap({{":user","root"}}))
                .toJson(false).toJson().constData());
-
+        qDebug("***************************");
+        qDebug("%s\n",DAC.callSP ("","Test.spNoOutput", {{"Param1","1"}}).toJson(false).toJson().constData());
+        qDebug("***************************");
+        qDebug("%s\n",DAC.callSP ("","Test.spSelectNoInput").toJson(false).toJson().constData());
+        qDebug("***************************");
+        qDebug("%s\n",DAC.callSP ("","Test.spJustDirectOut").toJson(false).toJson().constData());
+        qDebug("***************************");
+        qDebug("%s\n",DAC.callSP ("","Test.spFullInOut", {{"Param1","dadsad"}, {"Param2", "eqwe"}}).toJson(false).toJson().constData());
     }catch(std::exception &e){
         TargomanError(e.what());
         return 1;

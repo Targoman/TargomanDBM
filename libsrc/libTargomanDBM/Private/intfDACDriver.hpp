@@ -32,6 +32,8 @@ namespace Targoman {
 namespace DBManager {
 namespace Private {
 
+const QString DEFAULT_OUTVAR_PATTERN = "@";
+
 TARGOMAN_DEFINE_ENUM(enuSPParamDir,
                      In = 1,
                      Out = 2,
@@ -69,7 +71,7 @@ public:
 
     virtual QStringList bindSPQuery(const QString& _spName,
                                     const SPParams_t &_spParams,
-                                    const QVariantList& _spArgs,
+                                    const QVariantMap& _spArgs,
                                     QStringList& _boundingVars) = 0;
 
     virtual QString boundSPQuery(const QString& _spName,

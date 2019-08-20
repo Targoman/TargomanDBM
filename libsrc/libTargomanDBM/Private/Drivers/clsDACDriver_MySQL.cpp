@@ -77,10 +77,10 @@ clsDACDriver_MySQL::clsDACDriver_MySQL()
 
 QStringList clsDACDriver_MySQL::bindSPQuery(const QString& _spName,
                                             const SPParams_t& _spParams,
-                                            const QVariantList &_spArgs,
+                                            const QVariantMap &_spArgs,
                                             QStringList& _boundingVars)
 {
-    /*   QString SetQueryStr;
+    QString SetQueryStr;
     QString CallQueryStr = "CALL "+_spName + "(";
     bool ParamAdded2Query = false;
     bool ParamAdded2Set = false;
@@ -128,7 +128,7 @@ QStringList clsDACDriver_MySQL::bindSPQuery(const QString& _spName,
             CallQueryStr += SPParam.Value.toString();
             ParamAdded2Query = true;
             ParamAdded2Set = true;
-            _boundingVars->append(SPParam.Value.toString());
+            _boundingVars.append(SPParam.Value.toString());
             break;
         case enuSPParamDir::Out:
             if (ParamAdded2Query)
@@ -136,7 +136,7 @@ QStringList clsDACDriver_MySQL::bindSPQuery(const QString& _spName,
 
             CallQueryStr += SPParam.Value.toString();
             ParamAdded2Query = true;
-            _boundingVars->append(SPParam.Value.toString());
+            _boundingVars.append(SPParam.Value.toString());
             break;
         }
     }
@@ -145,7 +145,6 @@ QStringList clsDACDriver_MySQL::bindSPQuery(const QString& _spName,
         return QStringList()<<CallQueryStr + ")";
     else
         return QStringList()<<SetQueryStr<<CallQueryStr + ")";
-*/
 }
 
 QString clsDACDriver_MySQL::boundSPQuery(const QString& _spName,
@@ -156,51 +155,67 @@ QString clsDACDriver_MySQL::boundSPQuery(const QString& _spName,
     return "SELECT " + _boundingVars.join(",");
 }
 
-const QString DEFAULT_OUTVAR_PATTERN = "@";
 
 SPParams_t clsDACDriver_MySQL::getSPParams(QSqlQuery& _connectedQuery,
                                            const QString _schema,
                                            const QString& _spName)
 {
+    QString Schema = (_spName.contains('.') ? _spName.split('.').first() : _schema);
+    QString Procedure = (_spName.contains('.') ? _spName.split('.').last() : _spName);
     _connectedQuery.clear();
-    _connectedQuery.prepare("SELECT param_list FROM mysql.proc p where db='" + _schema + "' AND name='" + _spName + "'");
+    _connectedQuery.prepare("SELECT PARAMETER_NAME,"
+                            "       DATA_TYPE,"
+                            "       PARAMETER_MODE"
+                            "  FROM INFORMATION_SCHEMA.PARAMETERS"
+                            " WHERE SPECIFIC_SCHEMA=?"
+                            "   AND SPECIFIC_NAME=?"
+                            );
+    _connectedQuery.addBindValue(Schema);
+    _connectedQuery.addBindValue(Procedure);
     DACImpl::instance().runQueryBase(this,
                                      _connectedQuery,
                                      "Retriving SP Parameters Order");
-
     SPParams_t SPParams;
 
-    if (_connectedQuery.next()) {
-        QStringList ParamsList = _connectedQuery.value(0).toString().trimmed().split(',', QString::SkipEmptyParts);
-        if (ParamsList.first().size()) {
-            foreach (const QString& Parameter, ParamsList) {
-                QStringList ParamterSections = Parameter.split(QRegExp("\\s+"), QString::SkipEmptyParts);
-                QString VarName =  QString(ParamterSections.at(1)).remove("`");
-                QString ParamTypeStr = ParamterSections.at(2).split(QRegExp("\\(|,")).at(0);
-
-                if (ParamterSections.at(0).toUpper() == "OUT")
-                    SPParams.append(stuSPParam(enuSPParamDir::Out,
-                                               VarName,
-                                               this->abstractDataType(ParamTypeStr),
-                                               DEFAULT_OUTVAR_PATTERN + VarName));
-                else if (ParamterSections.at(0).toUpper() == "IN")
-                    SPParams.append(stuSPParam(enuSPParamDir::In,
-                                               VarName,
-                                               this->abstractDataType(ParamTypeStr)));
-                else if (ParamterSections.at(0).toUpper() == "INOUT")
-                    SPParams.append(stuSPParam(enuSPParamDir::InOut,
-                                               VarName,
-                                               this->abstractDataType(ParamTypeStr),
-                                               DEFAULT_OUTVAR_PATTERN + VarName));
-                else
-                    throw exTargomanDBMUnableToExecuteQuery("Invalid SP params count: " + _connectedQuery.value(0).toString());
-            }
-        }
-        _connectedQuery.clear();
-        return SPParams;
+    while(_connectedQuery.next()){
+        QString VarName = _connectedQuery.value(0).toString();
+        QString ParamTypeStr = _connectedQuery.value(1).toString();
+        QString VarType = _connectedQuery.value(2).toString().toUpper();
+        if(VarType == "IN")
+            SPParams.append(stuSPParam(enuSPParamDir::In,
+                                       VarName,
+                                       this->abstractDataType(ParamTypeStr)));
+        else if (VarType == "OUT")
+            SPParams.append(stuSPParam(enuSPParamDir::Out,
+                                       VarName,
+                                       this->abstractDataType(ParamTypeStr),
+                                       DEFAULT_OUTVAR_PATTERN + VarName));
+        else if (VarType == "INOUT")
+            SPParams.append(stuSPParam(enuSPParamDir::InOut,
+                                       VarName,
+                                       this->abstractDataType(ParamTypeStr),
+                                       DEFAULT_OUTVAR_PATTERN + VarName));
+        else
+            throw exTargomanDBMUnableToExecuteQuery("Invalid SP param type: " + VarType);
     }
-    else
-        throw exTargomanDBMUnableToExecuteQuery(QString("Stored procedure: %1 not found in DB").arg(_spName));
+
+    if(SPParams.isEmpty()){
+        _connectedQuery.clear();
+        _connectedQuery.prepare("SELECT 1"
+                                "  FROM INFORMATION_SCHEMA.ROUTINES"
+                                " WHERE ROUTINE_SCHEMA=?"
+                                "   AND ROUTINE_NAME=?"
+                                );
+        _connectedQuery.addBindValue(Schema);
+        _connectedQuery.addBindValue(Procedure);
+        DACImpl::instance().runQueryBase(this,
+                                         _connectedQuery,
+                                         "check SP existence without input params");
+
+        if(_connectedQuery.next() == false)
+            throw exTargomanDBMUnableToExecuteQuery("Stored Procedure  [" + Schema + '.' + Procedure + " Not found.");
+    }
+    return SPParams;
 }
 
 enuSQLAbstractDataType::Type   clsDACDriver_MySQL::abstractDataType(const QString& _typeStr)

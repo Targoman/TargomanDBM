@@ -76,27 +76,27 @@ public:
                              const QString& _entityName = "",
                              const QString& _target = "",
                              bool _clone = false,
-                             enuDBEngines::Type* _engineType = NULL,
+                             enuDBEngines::Type* _engineType = nullptr,
                              bool _returnBase = false);
-    qint64 runQueryBase(intfDACDriver *_driver, QSqlQuery& _sqlQuery, const QString &_purpose, quint64 *_executionTime = NULL);
+    qint64 runQueryBase(intfDACDriver *_driver, QSqlQuery& _sqlQuery, const QString &_purpose, quint64 *_executionTime = nullptr);
 
     clsDACResult runQuery(clsDAC& _dac,
                     const QString &_queryStr,
                     const QVariantList &_params = QVariantList(),
                     const QString& _purpose = "",
-                    quint64* _executionTime = NULL);
+                    quint64* _executionTime = nullptr);
 
     clsDACResult runQuery(clsDAC& _dac,
                     const QString &_queryStr,
                     const QVariantMap &_params = QVariantMap(),
                     const QString& _purpose = "",
-                    quint64* _executionTime = NULL);
+                    quint64* _executionTime = nullptr);
 
-    void callSP(clsDAC& _dac,
+    clsDACResult callSP(clsDAC& _dac,
                 const QString& _spName,
-                const QVariantList& _spArgs,
+                const QVariantMap &_spArgs,
                 const QString& _purpose = "",
-                quint64* _executionTime = NULL);
+                quint64* _executionTime = nullptr);
 
     QStringList whichOnesAreUpdated(const QSqlDatabase& _dbc,
                                     const QStringList& _tableNames,
@@ -111,18 +111,18 @@ private:
                         const QString& _queryStr,
                         const QVariantList& _params = QVariantList(),
                         const QString& _purpose  = "",
-                        quint64* _executionTime  = NULL);
+                        quint64* _executionTime  = nullptr);
 
     qint64 runQueryBase(intfDACDriver* _driver,
                         clsDACResult &_resultStorage,
                         const QString& _queryStr,
                         const QVariantMap& _params = QVariantMap(),
                         const QString& _purpose  = "",
-                        quint64* _executionTime  = NULL);
+                        quint64* _executionTime  = nullptr);
     void setSecurityProvider(intfDACSecurity* _securityProvider);
 
     SPParams_t getSPParams(intfDACDriver* _driver,
-                           QSqlQuery *_connectedQuery,
+                           QSqlQuery &_connectedQuery,
                            const QString& _schema,
                            const QString& _spName);
 
