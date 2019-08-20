@@ -333,6 +333,7 @@ void DACImpl::callSP(clsDAC &_dac,
             QStringList QueryStrings = Driver->bindSPQuery(_spName, SPParams, _spArgs, BoundingVars);
 
             foreach (const QString& QueryStr, QueryStrings) {
+                this->runQueryBase(_dac.pPrivate->Driver, Result, _queryStr, _params, _purpose, _executionTime);
                 this->runQuery(_sqlQuery, QueryStr, _purpose, _executionTime);
                 if (_executionTime)
                     FirstExecutionTime += *_executionTime;
