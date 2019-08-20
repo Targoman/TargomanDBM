@@ -38,8 +38,8 @@ public:
 
     QStringList bindSPQuery(const QString& _spName,
                             const SPParams_t &_spParams,
-                            const QVariantMap& _spArgs,
-                            QStringList* _boundingVars)
+                            const QVariantList& _spArgs,
+                            QStringList& _boundingVars)
     {Q_UNUSED(_spName); Q_UNUSED(_spParams); Q_UNUSED(_spArgs) Q_UNUSED(_boundingVars); throw Common::exTargomanNotImplemented("SQLite Driver has not yet been developped");}
 
     QString boundSPQuery(const QString& _spName, const QStringList& _boundingVars)
@@ -49,7 +49,7 @@ public:
     enuSQLAbstractDataType::Type   abstractDataType(const QString& _typeStr)
     {Q_UNUSED(_typeStr); throw Common::exTargomanNotImplemented("SQLite Driver has not yet been developped");}
 
-    SPParams_t getSPParams(QSqlQuery *_connectedQuery,
+    SPParams_t getSPParams(QSqlQuery& _connectedQuery,
                            const QString _schema,
                            const QString& _spName)
     {Q_UNUSED(_connectedQuery); Q_UNUSED(_schema); Q_UNUSED(_spName); throw Common::exTargomanNotImplemented("SQLite Driver has not yet been developped");}

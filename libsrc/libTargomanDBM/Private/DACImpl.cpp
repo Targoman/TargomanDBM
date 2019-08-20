@@ -126,8 +126,8 @@ QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entity
                 }
                 QString ThreadSafeConnection = _checkStr;
                 if (QSqlDatabase::contains(
-                        ThreadSafeConnection.replace(DEFAULT_DB_NAME,
-                                                     DEFAULT_DB_NAME + QString("^%1^").arg((quint64)QThread::currentThreadId()))))
+                            ThreadSafeConnection.replace(DEFAULT_DB_NAME,
+                                                         DEFAULT_DB_NAME + QString("^%1^").arg((quint64)QThread::currentThreadId()))))
                     DB = QSqlDatabase::database(ThreadSafeConnection, false);
                 else
                     DB = QSqlDatabase::cloneDatabase(QSqlDatabase::database(Connection, false), ThreadSafeConnection);
@@ -170,7 +170,6 @@ qint64 DACImpl::runQueryBase(intfDACDriver* _driver,
         Timer.start();
         Result = _sqlQuery.exec();
         *_executionTime = Timer.elapsed();
-
     }else
         Result = _sqlQuery.exec();
 
@@ -274,14 +273,13 @@ clsDACResult DACImpl::runQuery(clsDAC &_dac,
                                const QString& _purpose,
                                quint64* _executionTime)
 {
-    QSqlDatabase DBC = this->getThreadDBC(_dac.pPrivate->DB);
-    QMutexLocker QLocker(this->getCurrConnectionLock(DBC.connectionName()));
-
-    quint8 Retries=0;
     QTime Timer;
     if(_executionTime)
         Timer.start();
 
+    QSqlDatabase DBC = this->getThreadDBC(_dac.pPrivate->DB);
+    QMutexLocker QLocker(this->getCurrConnectionLock(DBC.connectionName()));
+    quint8 Retries=0;
     clsDACResult Result(DBC);
 
     while (true) {
@@ -306,32 +304,35 @@ clsDACResult DACImpl::runQuery(clsDAC &_dac,
     }
 }
 
-void DACImpl::callSPBase(clsDAC& _dac,
-                         QSqlQuery *_sqlQuery,
-                         QVariantHash* _spOutputs,
-                         const QString& _spName,
-                         const QVariantMap& _spArgs,
-                         const QString& _purpose,
-                         quint64* _executionTime)
+void DACImpl::callSP(clsDAC &_dac,
+                     const QString& _spName,
+                     const QVariantList &_spArgs,
+                     const QString& _purpose,
+                     quint64* _executionTime)
 {
-    /*    QSqlDatabase DBC = this->getThreadDBC(_dac);
-    QMutexLocker QLocker(this->getCurrConnectionLock(DBC.connectionName()));
+    QTime Timer;
+    if(_executionTime)
+        Timer.start();
 
+    QSqlDatabase DBC = this->getThreadDBC(_dac.pPrivate->DB);
+    QMutexLocker QLocker(this->getCurrConnectionLock(DBC.connectionName()));
     quint64 FirstExecutionTime = 0;
     quint8 Retries=0;
+    intfDACDriver* Driver = _dac.pPrivate->Driver;
+    clsDACResult Result(DBC);
 
     while (true) {
         try{
             clsDACPrivate_OpenDB(DBC);
 
-            SPParams_t SPParams = this->getSPParams(Driver,
-                                                    _sqlQuery,
-                                                    DBC.databaseName(),
-                                                    _spName);
-            QStringList BoundingVars;
-            QStringList QueryStrs = Driver->bindSPQuery(_spName, SPParams, _spArgs, &BoundingVars);
+            SPParams_t SPParams = Driver->getSPParams(Result.d->Query,
+                                                      DBC.databaseName(),
+                                                      _spName);
 
-            foreach (const QString& QueryStr, QueryStrs) {
+            QStringList BoundingVars;
+            QStringList QueryStrings = Driver->bindSPQuery(_spName, SPParams, _spArgs, BoundingVars);
+
+            foreach (const QString& QueryStr, QueryStrings) {
                 this->runQuery(_sqlQuery, QueryStr, _purpose, _executionTime);
                 if (_executionTime)
                     FirstExecutionTime += *_executionTime;
@@ -375,48 +376,7 @@ void DACImpl::callSPBase(clsDAC& _dac,
                         DBC.close();
             usleep(50000);
         }
-    }*/
-}
-
-
-void DACImpl::callSP(clsDAC &_dac,
-                     clsDACResult* _resultStorage,
-                     const QString& _spName,
-                     const QVariantMap& _spArgs,
-                     const QString& _purpose,
-                     quint64* _executionTime)
-{
-    /*    QSqlDatabase DBC = getThreadDBC(_dbc);
-    QMutexLocker QLocker(this->getCurrConnectionLock(DBC.connectionName()));
-
-    clsDACPrivate_OpenDB(DBC);
-
-    if (_resultStorage){
-        if (dynamic_cast<clsDACResult*>(_resultStorage) == NULL)
-            throw exTargomanDBMUnableToExecuteQuery("Invalid storage type");
-
-        _resultStorage->setQuery(new QSqlQuery(DBC));
-
-        this->callSP(DBC,
-                     _resultStorage->query(),
-                     &_resultStorage->SPDirectOutputs,
-                     _spName,
-                     _spArgs,
-                     _purpose,
-                     _executionTime,
-                     false);
-    } else {
-        QSqlQuery Query(DBC);
-        this->callSP(DBC,
-                     &Query,
-                     NULL,
-                     _spName,
-                     _spArgs,
-                     _purpose,
-                     _executionTime,
-                     false);
     }
-    //    _dbc.close();*/
 }
 
 void DACImpl::setSecurityProvider(intfDACSecurity* _securityProvider)

@@ -78,7 +78,7 @@ public:
                              bool _clone = false,
                              enuDBEngines::Type* _engineType = NULL,
                              bool _returnBase = false);
-    qint64 runQueryBase(intfDACDriver *_driver, QSqlQuery& _sqlQuery, const QString &_purpose, quint64 *_executionTime);
+    qint64 runQueryBase(intfDACDriver *_driver, QSqlQuery& _sqlQuery, const QString &_purpose, quint64 *_executionTime = NULL);
 
     clsDACResult runQuery(clsDAC& _dac,
                     const QString &_queryStr,
@@ -93,9 +93,8 @@ public:
                     quint64* _executionTime = NULL);
 
     void callSP(clsDAC& _dac,
-                clsDACResult *_resultStorage,
                 const QString& _spName,
-                const QVariantMap& _spArgs,
+                const QVariantList& _spArgs,
                 const QString& _purpose = "",
                 quint64* _executionTime = NULL);
 
@@ -121,14 +120,6 @@ private:
                         const QString& _purpose  = "",
                         quint64* _executionTime  = NULL);
     void setSecurityProvider(intfDACSecurity* _securityProvider);
-
-    void callSPBase(clsDAC &_dac,
-                    QSqlQuery *_sqlQuery,
-                    QVariantHash* _spOutputs,
-                    const QString& _spName,
-                    const QVariantMap& _spArgs,
-                    const QString& _purpose = "",
-                    quint64* _executionTime = NULL);
 
     SPParams_t getSPParams(intfDACDriver* _driver,
                            QSqlQuery *_connectedQuery,
