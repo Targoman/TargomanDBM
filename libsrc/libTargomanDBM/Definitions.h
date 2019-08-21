@@ -22,6 +22,7 @@
 
 #include <QString>
 #include <QSqlDatabase>
+#include <QJsonDocument>
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QVariantHash>
@@ -132,9 +133,9 @@ TARGOMAN_DEFINE_ENUM(enuSQLAbstractDataType,
 
 class clsDAC;
 namespace Private{
-    class clsDACResultPrivate;
-    class clsDACPrivate;
-    class DACImpl;
+class clsDACResultPrivate;
+class clsDACPrivate;
+class DACImpl;
 }
 
 /**
@@ -149,7 +150,7 @@ class clsDACResult
 public:
     explicit clsDACResult(const QSqlDatabase& _dbc);
     ~clsDACResult();
-    /*int at();
+    int at();
     bool first();
     bool isNull(int _field);
     bool isSelect();
@@ -169,7 +170,8 @@ public:
     QVariant value(int _index) const;
     QVariant value(const QString& _colName) const;
     int colIndex(const QString& _colName);
-    */
+
+    QJsonDocument toJson(bool _justSingle);
 private:
     QSharedDataPointer<Private::clsDACResultPrivate> d;
     friend class Targoman::DBManager::Private::DACImpl;

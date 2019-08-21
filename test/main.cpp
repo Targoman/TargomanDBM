@@ -23,24 +23,47 @@
 
 #include <iostream>
 #include <unistd.h>
+#include <QtDebug>
+#include <QCoreApplication>
 #include "libTargomanDBM/clsDAC.h"
 #include "libTargomanCommon/CmdIO.h"
-
+#include "libTargomanCommon/Logger.h"
 
 using namespace Targoman::DBManager;
 int main(int argc, char *argv[])
 {
+    QCoreApplication App(argc, argv);
+    Targoman::Common::Logger::instance().setVisible(true);
     Q_UNUSED(argc); Q_UNUSED(argv);
     try{
         clsDAC::addDBEngine (enuDBEngines::MySQL);
-        clsDAC::setConnectionString ("HOST=172.17.0.1;PORT=3316;USER=test;PASSWORD=1;SCHEMA=AAA");
+        clsDAC::setConnectionString ("HOST=172.17.0.1;PORT=3316;USER=root;PASSWORD=1;SCHEMA=mysql");
 
         clsDAC DAC;
-        DAC.execQuery("", "SELECT * FROM tblRoles");
+        qDebug()<<DAC.execQuery("", "SELECT * FROM user")
+                  .toJson(false).toJson().constData();
+        qDebug()<<"***************************";
+        qDebug()<<DAC.execQuery("", "SELECT * FROM user WHERE user.User=?",{{"root"}})
+                  .toJson(false).toJson().constData();
+        qDebug()<<"***************************";
+        qDebug()<<DAC.execQuery("", "SELECT * FROM user WHERE user.User=:user",QVariantMap({{":user","root"}}))
+                  .toJson(false).toJson().constData();
+        qDebug()<<"***************************"<<"Test.spNoOutput";
+        qDebug()<<DAC.callSP ("","Test.spNoOutput", {{"Param1","1"}}).toJson(false).toJson().constData();
+        qDebug()<<"***************************"<<"Test.spSelectNoInput";
+        qDebug()<<DAC.callSP ("","Test.spSelectNoInput").toJson(false).toJson().constData();
+        qDebug()<<"***************************"<<"Test.spJustDirectOut";
+        qDebug()<<DAC.callSP ("","Test.spJustDirectOut").toJson(false).toJson().constData();
+        qDebug()<<"***************************"<<"Test.spFullInOut";
+        qDebug()<<DAC.callSP ("","Test.spFullInOut", {{"Param1","1"}, {"Param3", " test"}}).toJson(false).toJson().constData();
+        qDebug()<<"***************************"<<"Test.spFullInOut";
+        qDebug()<<DAC.callSP ("","Test.spFullInOut", {{"Param1","1"}, {"Param2", " test"}}).toJson(false).toJson().constData();
 
-    }catch(std::exception &e){
+
+        DAC.shutdown();
+   }catch(std::exception &e){
         TargomanError(e.what());
-        return 1;
+        QCoreApplication::exit(1);
     }
 
     return 0;

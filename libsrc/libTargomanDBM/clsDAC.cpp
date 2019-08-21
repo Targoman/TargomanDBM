@@ -23,6 +23,9 @@
 #include <QThread>
 #include <QJsonValue>
 #include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+
 #include "clsDAC.h"
 #include "Private/clsDACPrivate.h"
 #include "Private/DACImpl.h"
@@ -43,11 +46,11 @@ clsDAC::~clsDAC()
 
 /* ----------------------------------------------- */
 QSqlDatabase clsDAC::getDBEngine(const QString& _domain,
-                            const QString& _entityName,
-                            const QString& _target,
-                            bool _clone,
-                            enuDBEngines::Type* _engineType,
-                            bool _returnBase)
+                                 const QString& _entityName,
+                                 const QString& _target,
+                                 bool _clone,
+                                 enuDBEngines::Type* _engineType,
+                                 bool _returnBase)
 {
     return Private::DACImpl::instance().getDBEngine(_domain, _entityName, _target, _clone, _engineType, _returnBase);
 }
@@ -77,11 +80,11 @@ void clsDAC::addDBEngine(enuDBEngines::Type _engineType,
 
 /* ----------------------------------------------- */
 void clsDAC::setConnectionString(const QString& _conStr,
-                                    const QString& _domain,
-                                    const QString& _entityName,
-                                    const QString& _target)
+                                 const QString& _domain,
+                                 const QString& _entityName,
+                                 const QString& _target)
 {
-    QSqlDatabase DB = Private::DACImpl::instance().getDBEngine(_domain, _entityName, _target,false,NULL,true);
+    QSqlDatabase DB = Private::DACImpl::instance().getDBEngine(_domain, _entityName, _target,false,nullptr,true);
 
     bool Result;
 
@@ -129,26 +132,25 @@ void clsDAC::setConnectionString(const QString& _conStr,
 }
 
 /* ----------------------------------------------- */
-void clsDAC::callSP(const QString& _agentID,
-                    clsDACResult *_resultStorage,
+clsDACResult clsDAC::callSP(const QString& _agentID,
                     const QString& _spName,
                     const QVariantMap& _spArgs,
                     const QString& _purpose,
                     quint64* _executionTime)
 {
-   /* if (Private::DACImpl::instance().securityProvider()->isSPCallAllowed(_agentID, _spName, _spArgs))
-        Private::DACImpl::instance().callSP(this->pPrivate->DB, _resultStorage, _spName, _spArgs, _purpose, _executionTime);
+    if (Private::DACImpl::instance().securityProvider()->isSPCallAllowed(_agentID, _spName, _spArgs))
+        return  Private::DACImpl::instance().callSP(*this, _spName,_spArgs, _purpose, _executionTime);
     else
         throw exTargomanDBMNotEnoughPrivileges(
-                QString("Not Enough privileges to call '%1' by %2").arg(_spName, _agentID));*/
+                QString("Not Enough privileges to call '%1' by %2").arg(_spName, _agentID));
 }
 
 /* ----------------------------------------------- */
 clsDACResult clsDAC::execQuery(const QString &_agentID,
-                         const QString &_queryStr,
-                         const QVariantList& _params,
-                         const QString &_purpose,
-                         quint64* _executionTime)
+                               const QString &_queryStr,
+                               const QVariantList& _params,
+                               const QString &_purpose,
+                               quint64* _executionTime)
 {
     if (Private::DACImpl::instance().securityProvider()->isQueryAllowed(_agentID, _queryStr, _params))
         return  Private::DACImpl::instance().runQuery(*this, _queryStr, _params, _purpose, _executionTime);
@@ -159,10 +161,10 @@ clsDACResult clsDAC::execQuery(const QString &_agentID,
 
 /* ----------------------------------------------- */
 clsDACResult clsDAC::execQuery(const QString &_agentID,
-                         const QString &_queryStr,
-                         const QVariantMap& _params,
-                         const QString &_purpose,
-                         quint64* _executionTime)
+                               const QString &_queryStr,
+                               const QVariantMap& _params,
+                               const QString &_purpose,
+                               quint64* _executionTime)
 {
     if (Private::DACImpl::instance().securityProvider()->isQueryAllowed(_agentID, _queryStr, _params))
         return  Private::DACImpl::instance().runQuery(*this, _queryStr, _params, _purpose, _executionTime);
@@ -187,6 +189,11 @@ bool clsDAC::areSimilar(const QSqlDatabase& _firstDBC, const QSqlDatabase& _seco
             _firstDBC.port() == _secondDBC.port());
 }
 
+void clsDAC::shutdown()
+{
+    Private::DACImpl::instance().shutdown();
+}
+
 /**********************************************************************************************************************/
 Private::clsDACPrivate::clsDACPrivate(const QSqlDatabase& _db) :
     DB(_db),
@@ -197,155 +204,155 @@ clsDACResult::clsDACResult(const QSqlDatabase &_dbc) : d(new Private::clsDACResu
 
 clsDACResult::~clsDACResult() {}
 
-/*int clsDACResult::at()
+QJsonDocument clsDACResult::toJson(bool _justSingle)
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
+    QJsonDocument  Json;
+    QJsonArray     RecordsArray;
+    while(this->d->Query.next()) {
+        QJsonObject        recordObject;
+        for(int i = 0; i < this->d->Query.record().count(); ++i){
+            QVariant Value = this->d->Query.value(i);
+            QString ValueStr = Value.toString();
 
+            QJsonParseError Error;
+            if(ValueStr.size() > 5 &&
+               *ValueStr.toLatin1().begin() == '{' &&
+               *(ValueStr.toLatin1().end()-1) == '}'){
+                QJsonDocument Doc = QJsonDocument::fromJson(ValueStr.toUtf8(), &Error);
+                if(Error.error == QJsonParseError::NoError){
+                    recordObject.insert(this->d->Query.record().fieldName(i),
+                                        Doc.object()
+                                        );
+                    continue;
+                }
+            }
+            if (ValueStr.size() > 3 &&
+                *ValueStr.toLatin1().begin() == '[' &&
+                *(ValueStr.toLatin1().end()-1)== ']'){
+                QJsonDocument Doc = QJsonDocument::fromJson(ValueStr.toUtf8(), &Error);
+                if(Error.error == QJsonParseError::NoError){
+                    recordObject.insert(this->d->Query.record().fieldName(i),
+                                        Doc.array()
+                                        );
+                    continue;
+                }
+
+            }
+            recordObject.insert( this->d->Query.record().fieldName(i),
+                                 QJsonValue::fromVariant(Value) );
+        }
+
+        RecordsArray.push_back(recordObject);
+    }
+
+    if(this->d->WasSP){
+        Json.setObject({
+                           {"rows", RecordsArray},
+                           {"direct", QJsonDocument::fromVariant(this->d->SPDirectOutputs).object()}
+                       });
+    }else if(_justSingle){
+        if(RecordsArray.count() > 0)
+            Json.setObject(RecordsArray.at(0).toObject());
+        else
+            Json.setObject(QJsonObject());
+    }else
+        Json.setArray(RecordsArray);
+
+    return Json;
+}
+
+int clsDACResult::at()
+{
     return this->d->Query.at();
 }
 
 bool clsDACResult::first()
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.first();
 }
 
 bool clsDACResult::isNull(int _field)
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.isNull(_field);
 }
 
 bool clsDACResult::isSelect()
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.isSelect();
 }
 
 bool clsDACResult::isValid()
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.isValid();
 }
 
 bool clsDACResult::last()
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.last();
 }
 
 QSqlError    clsDACResult::lastError () const
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.lastError();
 }
 
 QVariant    clsDACResult::lastInsertId () const
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.lastInsertId();
 }
 
 QString    clsDACResult::lastQuery () const
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.lastQuery();
 }
 
 bool    clsDACResult::next ()
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.next();
 }
 
 bool    clsDACResult::nextResult ()
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.nextResult();
 }
 
 int    clsDACResult::numRowsAffected () const
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.numRowsAffected();
 }
 
 QSql::NumericalPrecisionPolicy    clsDACResult::numericalPrecisionPolicy () const
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.numericalPrecisionPolicy();
 }
 
 bool    clsDACResult::previous ()
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.previous();
 }
 
 QSqlRecord    clsDACResult::record () const
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.record();
 }
 
 bool    clsDACResult::seek ( int _index, bool _relative)
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.seek(_index, _relative);
 }
 
 int    clsDACResult::size () const
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.size();
 }
 
 QVariant    clsDACResult::value ( int _index ) const
 {
-    if(this->d->Query.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     return this->d->Query.value(_index);
 }
 
 QVariant    clsDACResult::value ( const QString& _colName ) const
 {
-    if(this->d.isNull())
-        throw exTargomanDBMQueryResultNotReady("Query Result is not ready");
-
     int Index = this->d->Query.record().indexOf(_colName);
     Q_ASSERT_X(Index >= 0,
                "Retrieving Column Index",
@@ -362,7 +369,7 @@ int clsDACResult::colIndex(const QString& _colName)
                "Retrieving Column Index",
                qPrintable("Invalid Column Name: " + _colName));
     return Index;
-}*/
+}
 
 }
 }

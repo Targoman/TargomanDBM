@@ -86,7 +86,7 @@ public:
                                     const QString& _entityName = "",
                                     const QString& _target = "",
                                     bool _clone = false,
-                                    enuDBEngines::Type* _engineType = NULL,
+                                    enuDBEngines::Type* _engineType = nullptr,
                                     bool _returnBase = false);
 
     /**
@@ -138,7 +138,7 @@ public:
                            const QString &_queryStr,
                            const QVariantList &_params = QVariantList(),
                            const QString& _purpose = "",
-                           quint64* _executionTime = NULL);
+                           quint64* _executionTime = nullptr);
 
     /**
      * @brief runQuery A general static method to execute a Query String
@@ -155,7 +155,7 @@ public:
                            const QString &_queryStr,
                            const QVariantMap &_params,
                            const QString& _purpose = "",
-                           quint64* _executionTime = NULL);
+                           quint64* _executionTime = nullptr);
 
     /**
      * @brief callSP A complex method to be used to call stored procedures. This method will ease calling stored
@@ -171,12 +171,11 @@ public:
      * @param _purpose An string to be shown in log and error messages before Query string or error messages
      * @param _executionTime An optional storage to be used to report SP Call and execution time
      */
-    void callSP(const QString& _agentID,
-                clsDACResult *_resultStorage,
+    clsDACResult callSP(const QString& _agentID,
                 const QString& _spName,
-                const QVariantMap& _spArgs,
+                const QVariantMap& _spArgs = QVariantMap(),
                 const QString& _purpose = "",
-                quint64* _executionTime = NULL);
+                quint64* _executionTime = nullptr);
 
 
     /**
@@ -200,7 +199,10 @@ public:
      * @return
      */
     static bool areSimilar(const QSqlDatabase& _firstDBC, const QSqlDatabase& _secondDBC);
-
+    /**
+     * @brief shutdown will shutdown garbage collector thread
+     */
+    static void shutdown();
 
 private:
     Q_DISABLE_COPY(clsDAC)

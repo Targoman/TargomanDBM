@@ -72,12 +72,12 @@ public:
     virtual QStringList bindSPQuery(const QString& _spName,
                                     const SPParams_t &_spParams,
                                     const QVariantMap& _spArgs,
-                                    QStringList* _boundingVars) = 0;
+                                    QStringList& _boundingVars) = 0;
 
     virtual QString boundSPQuery(const QString& _spName,
                                  const QStringList& _boundingVars) = 0;
 
-    virtual SPParams_t getSPParams(QSqlQuery *_connectedQuery,
+    virtual SPParams_t getSPParams(QSqlQuery& _connectedQuery,
                                    const QString _schema,
                                    const QString& _spName) = 0;
 
