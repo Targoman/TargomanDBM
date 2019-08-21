@@ -177,14 +177,10 @@ qint64 DACImpl::runQueryBase(intfDACDriver* _driver,
             throw exTargomanDBMConnectionLost(
                     QString(
                         "Connection lost when executing query: [%1] %2").arg(
-                        _sqlQuery.lastError().number()).arg(
-                        _sqlQuery.lastError().text()));
+                        _sqlQuery.lastError().nativeErrorCode()).arg(
+                        _sqlQuery.lastError().databaseText()));
         else
-            throw exTargomanDBMUnableToExecuteQuery(
-                    QString(
-                        "Unable to execute query: [%1] %2").arg(
-                        _sqlQuery.lastError().number()).arg(
-                        _sqlQuery.lastError().text()));
+            throwFormatted(_sqlQuery.lastError());
     }
 
     if (_sqlQuery.isSelect())
@@ -481,6 +477,31 @@ QMutex *DACImpl::getCurrConnectionLock(const QString &_conName)
         this->RunningQueryLocks.insert(_conName, mxCurrConnectionLock);
     }
     return mxCurrConnectionLock;
+}
+
+static const QRegExp rxSQLError("^\\d{3,3}\\:.*$");
+void DACImpl::throwFormatted(const QSqlError &_error)
+{
+    if(rxSQLError.exactMatch(_error.databaseText())){
+        QStringList ErrorParts = _error.databaseText().split(':');
+        switch(ErrorParts.first().toUInt()){
+        case 400: throw exTargomanDBM_AAA_BadRequest(ErrorParts.last());
+        case 401: throw exTargomanDBM_AAA_Unauthorized(ErrorParts.last());
+        case 402: throw exTargomanDBM_AAA_PaymentRequired(ErrorParts.last());
+        case 403: throw exTargomanDBM_AAA_Forbidden(ErrorParts.last());
+        case 404: throw exTargomanDBM_AAA_NotFound(ErrorParts.last());
+        case 405: throw exTargomanDBM_AAA_NotAllowed(ErrorParts.last());
+        case 406: throw exTargomanDBM_AAA_NotAcceptable(ErrorParts.last());
+        case 409: throw exTargomanDBM_AAA_Conflict(ErrorParts.last());
+        }
+    }
+
+    throw exTargomanDBMUnableToExecuteQuery(
+                QString(
+                    "Unable to execute query: [%1] %2").arg(
+                    _error.nativeErrorCode()).arg(
+                    _error.databaseText()));
+
 }
 
 void DACImpl::shutdown()

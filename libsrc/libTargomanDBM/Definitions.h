@@ -41,55 +41,26 @@ namespace DBManager {
  * \extends Targoman::Common::exTargomanBase
  */
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM, Targoman::Common::exTargomanBase);
-/**
- * \exception exTargomanDBMEngineNotSupported Exception class used to report that required engine type is not available
- * \extends exTargomanDBM
- */
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMEngineNotSupported, exTargomanDBM);
-/**
- * \exception exTargomanDBMEngineNotRegistered Exception class used to report that DB connection is not registered previously
- * \extends exTargomanDBM
- */
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMEngineNotRegistered, exTargomanDBM);
-/**
- * \exception exTargomanDBMInvalidConnectionString Exception class used to report that the specified connection string is
- * invalid or ther is a problem connection to DB using this connection string
- * \extends exTargomanDBM
- */
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMInvalidConnectionString, exTargomanDBM);
-/**
- * \exception exTargomanDBMUnableToExecuteQuery Exception class used to report that there is a problem executing specified
- * query or calling stored procedure
- * \extends exTargomanDBM
- */
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMUnableToExecuteQuery, exTargomanDBM);
-/**
- * \exception exTargomanDBMUnableToPrepareQuery Exception class used to report that there is a problem preparing query for execution
- * \extends exTargomanDBM
- */
+
+
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMUnableToPrepareQuery, exTargomanDBM);
-/**
- * \exception exTargomanDBMUnableToBindQuery Exception class used to report that there is a problem preparing query binding specified value
- * \extends exTargomanDBM
- */
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMUnableToBindQuery, exTargomanDBM);
-/**
- * \exception exTargomanDBMUnableToExecuteQuery Exception class used to report the query has been failed and must be retried
- * \extends exTargomanDBM
- */
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMConnectionLost, exTargomanDBMUnableToExecuteQuery);
-/**
- * \exception exTargomanDBMQueryResultNotReady Exception class used to report that Result is not ready yet. Usefull in
- * asynchronous result chekings.
- * \extends exTargomanDBM
- */
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMQueryResultNotReady, exTargomanDBM);
-/**
- * \exception exTargomanDBMNotEnoughPrivileges Exception class used to report that security provider has restricted executing
- * specified query or calling specified Stored procedures with provided parameters
- * \extends exTargomanDBM
- */
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMNotEnoughPrivileges, exTargomanDBM);
+
+TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_BadRequest, exTargomanDBMUnableToExecuteQuery);
+TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_Unauthorized, exTargomanDBMUnableToExecuteQuery);
+TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_PaymentRequired, exTargomanDBMUnableToExecuteQuery);
+TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_Forbidden, exTargomanDBMUnableToExecuteQuery);
+TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_NotFound, exTargomanDBMUnableToExecuteQuery);
+TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_NotAllowed, exTargomanDBMUnableToExecuteQuery);
+TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_NotAcceptable, exTargomanDBMUnableToExecuteQuery);
+TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_Conflict, exTargomanDBMUnableToExecuteQuery);
 
 /**
  * @brief DEFAULT_DB_NAME A const name to be added to all connection names in order to specialize all ETS connections
@@ -128,6 +99,7 @@ TARGOMAN_DEFINE_ENUM(enuSQLAbstractDataType,
                      Numeric,
                      Binary,
                      String,
+                     JSON,
                      Unknown
                      )
 

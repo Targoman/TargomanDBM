@@ -24,6 +24,8 @@
 #include <QStringList>
 #include <QDateTime>
 #include <QVariant>
+#include <QJsonObject>
+#include <QJsonArray>
 #include "clsDACDriver_MySQL.h"
 
 #include "../DACImpl.h"
@@ -59,7 +61,6 @@ clsDACDriver_MySQL::clsDACDriver_MySQL()
 
     this->DataTypes.insert("CHAR",enuSQLAbstractDataType::String);
     this->DataTypes.insert("VARCHAR",enuSQLAbstractDataType::String);
-    this->DataTypes.insert("JSON",enuSQLAbstractDataType::String);
     this->DataTypes.insert("TINYBLOB",enuSQLAbstractDataType::String);
     this->DataTypes.insert("TINYTEXT",enuSQLAbstractDataType::String);
     this->DataTypes.insert("BLOB",enuSQLAbstractDataType::String);
@@ -69,6 +70,8 @@ clsDACDriver_MySQL::clsDACDriver_MySQL()
     this->DataTypes.insert("LONGTEXT",enuSQLAbstractDataType::String);
     this->DataTypes.insert("ENUM",enuSQLAbstractDataType::String);
     this->DataTypes.insert("SET",enuSQLAbstractDataType::String);
+
+    this->DataTypes.insert("JSON",enuSQLAbstractDataType::JSON);
 
     this->DataTypes.insert("BINARY",enuSQLAbstractDataType::Binary);
     this->DataTypes.insert("VARBINARY",enuSQLAbstractDataType::Binary);
@@ -90,14 +93,31 @@ QStringList clsDACDriver_MySQL::bindSPQuery(const QString& _spName,
         switch(SPParam.Dir) {
         case enuSPParamDir::In:
             if (_spArgs.contains(SPParam.Name) == false)
-                throw exTargomanDBM(QString("Obligatory variable %1 for calling %2 not found").arg(SPParam.Name, _spName));
+                throw exTargomanDBMUnableToBindQuery(QString("Obligatory variable %1 for calling %2 not found").arg(SPParam.Name, _spName));
             ParamValue = _spArgs.value(SPParam.Name);
             if (ParamAdded2Query)
                 CallQueryStr += ", ";
 
             if (SPParam.VarType == enuSQLAbstractDataType::Binary)
                 CallQueryStr += QString("x\'%1\'").arg(ParamValue.toByteArray().toHex().data());
-            else if (ParamValue.isNull())
+            else if (SPParam.VarType == enuSQLAbstractDataType::JSON){
+                QJsonDocument JsonDoc;
+                if(ParamValue.canConvert<QJsonDocument>())
+                    JsonDoc = ParamValue.toJsonDocument();
+                else if (ParamValue.canConvert<QJsonObject>()){
+                    QJsonObject JsonObject = ParamValue.toJsonObject();
+                    JsonDoc = JsonObject.isEmpty() ? QJsonDocument() : QJsonDocument::fromVariant(JsonObject.toVariantMap());
+                }else if (ParamValue.canConvert<QJsonArray>()){
+                    QJsonArray JsonArray = ParamValue.toJsonArray();
+                    JsonDoc = JsonArray.isEmpty() ? QJsonDocument() : QJsonDocument::fromVariant(JsonArray.toVariantList());
+                }else
+                    throw exTargomanDBMUnableToBindQuery(QString("Param %1 has type of JSON but passed argument is not json").arg(SPParam.Name));
+
+                if(JsonDoc.isNull())
+                    CallQueryStr += "NULL";
+                else
+                    CallQueryStr += QString("'%1'").arg(JsonDoc.toJson(QJsonDocument::Compact).replace("\'", "\\\\\\\'").constData());
+            }else if (ParamValue.isNull())
                 CallQueryStr += "NULL";
             else
                 CallQueryStr += QString("'%1'").arg(ParamValue.toString().replace("\'", "\\\\\\\'"));
@@ -118,7 +138,13 @@ QStringList clsDACDriver_MySQL::bindSPQuery(const QString& _spName,
 
             if (SPParam.VarType == enuSQLAbstractDataType::Binary)
                 SetQueryStr += QString("x\'%1\'").arg(ParamValue.toByteArray().toHex().data());
-            else if (ParamValue.isNull())
+            else if (SPParam.VarType == enuSQLAbstractDataType::JSON){
+                QJsonDocument JsonDoc = ParamValue.toJsonDocument();
+                if(JsonDoc.isNull())
+                    CallQueryStr += "NULL";
+                else
+                    CallQueryStr += QString("'%1'").arg(JsonDoc.toJson().replace("\'", "\\\\\\\'").constData());
+            }else if (ParamValue.isNull())
                 SetQueryStr += QString("%1 = NULL").arg(SPParam.Value.toString());
             else
                 SetQueryStr += QString("%1 = '%2'").arg(
