@@ -78,9 +78,9 @@ public:
 };
 
 DACImpl::DACImpl() :
-    SecurityProvider(new clsNullDACSecurity)
+    SecurityProvider(new clsNullDACSecurity),
+    ShuttingDown(false)
 {
-    this->SecurityProvider = new clsNullDACSecurity;
     this->SQLDrivers.insert(QString(enuDBEngines::toStr(enuDBEngines::MySQL)).toUpper(), new Drivers::clsDACDriver_MySQL);
     this->SQLDrivers.insert(QString(enuDBEngines::toStr(enuDBEngines::DB2)).toUpper(), new Drivers::clsDACDriver_DB2);
     this->SQLDrivers.insert(QString(enuDBEngines::toStr(enuDBEngines::IBase)).toUpper(), new Drivers::clsDACDriver_IBase);
@@ -89,19 +89,8 @@ DACImpl::DACImpl() :
     this->SQLDrivers.insert(QString(enuDBEngines::toStr(enuDBEngines::PSQL)).toUpper(), new Drivers::clsDACDriver_PSQL);
     this->SQLDrivers.insert(QString(enuDBEngines::toStr(enuDBEngines::SQLite)).toUpper(), new Drivers::clsDACDriver_SQLite);
 
-    this->ShuttingDown = false;
-
-    //Every minute I'll check all DB connection and close those that has been not used for more than 3 minutes
     this->DBCChecker = QtConcurrent::run(this, &DACImpl::purgeConnections);
-    connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, this,  [this](){
-        TargomanWarn(5,"Shutting down DAC connection manager");
-        try{
-            this->ShuttingDown = true;
-            this->DBCChecker.waitForFinished();
-        }catch(QUnhandledException &e) {
-            Q_UNUSED(e)
-        }
-    });
+    connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, this,  &DACImpl::shutdown);
 }
 
 QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entityName, const QString &_target, bool _clone, enuDBEngines::Type *_engineType, bool _returnBase)
@@ -168,10 +157,20 @@ qint64 DACImpl::runQueryBase(intfDACDriver* _driver,
     if(_executionTime){
         QTime Timer;
         Timer.start();
-        Result = _sqlQuery.exec();
+        if(_sqlQuery.lastQuery().startsWith("CALL")){
+            QString Query = _sqlQuery.lastQuery();
+            Result = _sqlQuery.exec(Query);
+        }else
+            Result = _sqlQuery.exec();
         *_executionTime = static_cast<quint64>(Timer.elapsed());
-    }else
+    }else{
         Result = _sqlQuery.exec();
+        if(_sqlQuery.lastQuery().startsWith("CALL")){
+            QString Query = _sqlQuery.lastQuery();
+            Result = _sqlQuery.exec(Query);
+        }else
+            Result = _sqlQuery.exec();
+    }
 
     if(!Result){
         if(_driver->wasConnectionLost(_sqlQuery.lastError()))
@@ -434,7 +433,7 @@ QStringList DACImpl::whichOnesAreUpdated(const QSqlDatabase &_dbc,
 void DACImpl::purgeConnections()
 {
     while(!this->ShuttingDown) {
-        sleep(10); //Check every 10 Seconds
+        sleep(2); //Check every 10 Seconds
         QStringList ToBeRemoved;
         for(QHash<QString,QDateTime>::iterator CacheIter= this->DBCAccessCache.begin();
             CacheIter != this->DBCAccessCache.end();
@@ -482,6 +481,17 @@ QMutex *DACImpl::getCurrConnectionLock(const QString &_conName)
         this->RunningQueryLocks.insert(_conName, mxCurrConnectionLock);
     }
     return mxCurrConnectionLock;
+}
+
+void DACImpl::shutdown()
+{
+    TargomanWarn(5,"Shutting down DAC connection manager. Please wait...");
+    try{
+        this->ShuttingDown = true;
+        this->DBCChecker.waitForFinished();
+    }catch(QUnhandledException &e) {
+        Q_UNUSED(e)
+    }
 }
 
 }

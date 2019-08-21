@@ -131,6 +131,9 @@ private:
 
     QMutex* getCurrConnectionLock(const QString& _conName);
 
+public slots:
+    void shutdown();
+
 private:
     Q_DISABLE_COPY(DACImpl)
     DACImpl();

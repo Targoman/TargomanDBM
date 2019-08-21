@@ -189,6 +189,11 @@ bool clsDAC::areSimilar(const QSqlDatabase& _firstDBC, const QSqlDatabase& _seco
             _firstDBC.port() == _secondDBC.port());
 }
 
+void clsDAC::shutdown()
+{
+    Private::DACImpl::instance().shutdown();
+}
+
 /**********************************************************************************************************************/
 Private::clsDACPrivate::clsDACPrivate(const QSqlDatabase& _db) :
     DB(_db),

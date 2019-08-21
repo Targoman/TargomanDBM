@@ -199,7 +199,10 @@ public:
      * @return
      */
     static bool areSimilar(const QSqlDatabase& _firstDBC, const QSqlDatabase& _secondDBC);
-
+    /**
+     * @brief shutdown will shutdown garbage collector thread
+     */
+    static void shutdown();
 
 private:
     Q_DISABLE_COPY(clsDAC)
