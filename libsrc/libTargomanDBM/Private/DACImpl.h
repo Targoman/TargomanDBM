@@ -131,6 +131,8 @@ private:
 
     QMutex* getCurrConnectionLock(const QString& _conName);
 
+    [[ noreturn ]] void throwFormatted(const QSqlError &_error);
+
 public slots:
     void shutdown();
 
@@ -145,8 +147,8 @@ private:
     QString                         ActorUUID;
     QHash<QString, QMutex*>         RunningQueryLocks;
     QMutex                          mxConnectionList;
-    bool                            ShuttingDown;
     QFuture<void>                   DBCChecker;
+    bool                            ShuttingDown;
 };
 
 }

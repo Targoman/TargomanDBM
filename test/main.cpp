@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <QtDebug>
 #include <QCoreApplication>
+#include <QJsonObject>
 #include "libTargomanDBM/clsDAC.h"
 #include "libTargomanCommon/CmdIO.h"
 #include "libTargomanCommon/Logger.h"
@@ -40,7 +41,7 @@ int main(int argc, char *argv[])
         clsDAC::setConnectionString ("HOST=172.17.0.1;PORT=3316;USER=root;PASSWORD=1;SCHEMA=mysql");
 
         clsDAC DAC;
-        qDebug()<<DAC.execQuery("", "SELECT * FROM user")
+/*        qDebug()<<DAC.execQuery("", "SELECT * FROM user")
                   .toJson(false).toJson().constData();
         qDebug()<<"***************************";
         qDebug()<<DAC.execQuery("", "SELECT * FROM user WHERE user.User=?",{{"root"}})
@@ -58,7 +59,13 @@ int main(int argc, char *argv[])
         qDebug()<<DAC.callSP ("","Test.spFullInOut", {{"Param1","1"}, {"Param3", " test"}}).toJson(false).toJson().constData();
         qDebug()<<"***************************"<<"Test.spFullInOut";
         qDebug()<<DAC.callSP ("","Test.spFullInOut", {{"Param1","1"}, {"Param2", " test"}}).toJson(false).toJson().constData();
-
+*/        qDebug()<<"***************************"<<"Test.spFullInOut";
+        qDebug()<<DAC.callSP ("","AAA.sp_login", {
+                                  {"iLogin", "sdsad"},
+                                  {"iPass", "adsad"},
+                                  {"iSalt", "aasd"},
+                                  {"iInfo", QJsonObject()}
+                              }).toJson(false).toJson().constData();
 
         DAC.shutdown();
    }catch(std::exception &e){
