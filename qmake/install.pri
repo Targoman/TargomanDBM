@@ -1,10 +1,10 @@
 !contains(CONFIG, no_install) {
-    INCLUDE_PREFIX = $$[QT_INSTALL_HEADERS]/TargomanAAA
+    INCLUDE_PREFIX = $$[QT_INSTALL_HEADERS]/
     LIB_PREFIX     = $$[QT_INSTALL_LIBS]
     EXAMPLES_PREFIX= $$[QT_INSTALL_EXAMPLES]
 
     unix:!isEmpty(PREFIX){
-            INCLUDE_PREFIX = $$PREFIX/include/TargomanAAA
+            INCLUDE_PREFIX = $$PREFIX/include/
             contains(QT_ARCH, x86_64){
                 LIB_PREFIX     = $$PREFIX/lib64
             } else {
