@@ -67,7 +67,9 @@ DependencyLibPaths      +=   $$BaseLibraryFolder \
                              $$PRJDIR/out/lib64 \
                              $$PRJDIR/out/lib \
                              $$PREFIX/lib64 \
-                             $$PREFIX/lib
+                             $$PREFIX/lib \
+                             $(HOME)/local/lib \
+                             $(HOME)/local/lib64 \
 
 #+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-+-
 win32: DEFINES += _WINDOWS WIN32_LEAN_AND_MEAN NOMINMAX
