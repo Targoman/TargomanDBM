@@ -61,9 +61,9 @@ int main(int argc, char *argv[])
         qDebug()<<DAC.callSP ("","Test.spFullInOut", {{"Param1","1"}, {"Param2", " test"}}).toJson(false).toJson().constData();
 */        qDebug()<<"***************************"<<"Test.spFullInOut";
         qDebug()<<DAC.callSP ("","AAA.sp_login", {
-                                  {"iLogin", "sdsad"},
-                                  {"iPass", "adsad"},
-                                  {"iSalt", "aasd"},
+                                  {"iLogin", "09126174250"},
+                                  {"iPass", "da1234a56dac001ba01e1cc61aed0ba7"},
+                                  {"iSalt", "MySALT"},
                                   {"iInfo", QJsonObject()}
                               }).toJson(false).toJson().constData();
 
