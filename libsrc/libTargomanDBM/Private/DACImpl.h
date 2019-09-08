@@ -33,6 +33,7 @@
 #include "intfDACDriver.hpp"
 #include "Definitions.h"
 #include "clsDAC.h"
+#include "libTargomanCommon/tmplExpirableCache.hpp"
 
 namespace Targoman {
 
@@ -52,7 +53,7 @@ class DACImpl : public QObject
 
 public:
     static  DACImpl& instance() {static DACImpl* Instance = NULL; return *(Q_LIKELY(Instance) ? Instance : Instance = new DACImpl); }
-
+    ~DACImpl();
     /**
      * @brief getDBEngine A method to retrive registered DB Item. It is supposed that you have registered some
      * databases previously using \a addDBEngine. This method will try to find a registered DB by matching all the
@@ -81,22 +82,43 @@ public:
     qint64 runQueryBase(intfDACDriver *_driver, QSqlQuery& _sqlQuery, const QString &_purpose, quint64 *_executionTime = nullptr);
 
     clsDACResult runQuery(clsDAC& _dac,
-                    const QString &_queryStr,
-                    const QVariantList &_params = QVariantList(),
-                    const QString& _purpose = "",
-                    quint64* _executionTime = nullptr);
+                          const QString &_queryStr,
+                          const QVariantList &_params = QVariantList(),
+                          const QString& _purpose = "",
+                          quint64* _executionTime = nullptr);
 
     clsDACResult runQuery(clsDAC& _dac,
-                    const QString &_queryStr,
-                    const QVariantMap &_params = QVariantMap(),
-                    const QString& _purpose = "",
-                    quint64* _executionTime = nullptr);
+                          const QString &_queryStr,
+                          const QVariantMap &_params = QVariantMap(),
+                          const QString& _purpose = "",
+                          quint64* _executionTime = nullptr);
+
+    clsDACResult runQueryCacheable(quint32 _ttl,
+                                   clsDAC& _dac,
+                                   const QString &_queryStr,
+                                   const QVariantList &_params = QVariantList(),
+                                   const QString& _purpose = "",
+                                   quint64* _executionTime = nullptr);
+
+    clsDACResult runQueryCacheable(quint32 _ttl,
+                                   clsDAC& _dac,
+                                   const QString &_queryStr,
+                                   const QVariantMap &_params = QVariantMap(),
+                                   const QString& _purpose = "",
+                                   quint64* _executionTime = nullptr);
 
     clsDACResult callSP(clsDAC& _dac,
-                const QString& _spName,
-                const QVariantMap &_spArgs,
-                const QString& _purpose = "",
-                quint64* _executionTime = nullptr);
+                        const QString& _spName,
+                        const QVariantMap &_spArgs,
+                        const QString& _purpose = "",
+                        quint64* _executionTime = nullptr);
+
+    clsDACResult callSPCacheable(quint32 _ttl,
+                                 clsDAC& _dac,
+                                 const QString& _spName,
+                                 const QVariantMap &_spArgs,
+                                 const QString& _purpose = "",
+                                 quint64* _executionTime = nullptr);
 
     QStringList whichOnesAreUpdated(const QSqlDatabase& _dbc,
                                     const QStringList& _tableNames,
@@ -131,7 +153,7 @@ private:
 
     QMutex* getCurrConnectionLock(const QString& _conName);
 
-    [[ noreturn ]] void throwFormatted(const QSqlError &_error);
+    void throwFormatted(const QSqlError &_error);
 
 public slots:
     void shutdown();
@@ -148,6 +170,7 @@ private:
     QHash<QString, QMutex*>         RunningQueryLocks;
     QMutex                          mxConnectionList;
     QFuture<void>                   DBCChecker;
+    Common::tmplExpirableCache<QHash, QString, clsDACResult> Cache;
     bool                            ShuttingDown;
 };
 

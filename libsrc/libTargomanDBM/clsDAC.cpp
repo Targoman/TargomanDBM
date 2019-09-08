@@ -145,6 +145,15 @@ clsDACResult clsDAC::callSP(const QString& _agentID,
                 QString("Not Enough privileges to call '%1' by %2").arg(_spName, _agentID));
 }
 
+clsDACResult clsDAC::callSPCacheable(quint32 _maxCacheTime, const QString &_agentID, const QString &_spName, const QVariantMap &_spArgs, const QString &_purpose, quint64 *_executionTime)
+{
+    if (Private::DACImpl::instance().securityProvider()->isSPCallAllowed(_agentID, _spName, _spArgs))
+        return  Private::DACImpl::instance().callSPCacheable(_maxCacheTime, *this, _spName,_spArgs, _purpose, _executionTime);
+    else
+        throw exTargomanDBMNotEnoughPrivileges(
+                QString("Not Enough privileges to call '%1' by %2").arg(_spName, _agentID));
+}
+
 /* ----------------------------------------------- */
 clsDACResult clsDAC::execQuery(const QString &_agentID,
                                const QString &_queryStr,
@@ -168,6 +177,26 @@ clsDACResult clsDAC::execQuery(const QString &_agentID,
 {
     if (Private::DACImpl::instance().securityProvider()->isQueryAllowed(_agentID, _queryStr, _params))
         return  Private::DACImpl::instance().runQuery(*this, _queryStr, _params, _purpose, _executionTime);
+    else
+        throw exTargomanDBMNotEnoughPrivileges(
+                QString("Not Enough privileges to execute '%1'[%2] by %3").arg(_queryStr, QJsonDocument::fromVariant(_params).toJson().constData(), _agentID));
+}
+
+/* ----------------------------------------------- */
+clsDACResult clsDAC::execQueryCacheable(quint32 _maxCacheTime, const QString &_agentID, const QString &_queryStr, const QVariantList &_params, const QString &_purpose, quint64 *_executionTime)
+{
+    if (Private::DACImpl::instance().securityProvider()->isQueryAllowed(_agentID, _queryStr, _params))
+        return  Private::DACImpl::instance().runQueryCacheable(_maxCacheTime, *this, _queryStr, _params, _purpose, _executionTime);
+    else
+        throw exTargomanDBMNotEnoughPrivileges(
+                QString("Not Enough privileges to execute '%1'[%2] by %3").arg(_queryStr, QJsonDocument::fromVariant(_params).toJson().constData(), _agentID));
+}
+
+/* ----------------------------------------------- */
+clsDACResult clsDAC::execQueryCacheable(quint32 _maxCacheTime, const QString &_agentID, const QString &_queryStr, const QVariantMap &_params, const QString &_purpose, quint64 *_executionTime)
+{
+    if (Private::DACImpl::instance().securityProvider()->isQueryAllowed(_agentID, _queryStr, _params))
+        return  Private::DACImpl::instance().runQueryCacheable(_maxCacheTime, *this, _queryStr, _params, _purpose, _executionTime);
     else
         throw exTargomanDBMNotEnoughPrivileges(
                 QString("Not Enough privileges to execute '%1'[%2] by %3").arg(_queryStr, QJsonDocument::fromVariant(_params).toJson().constData(), _agentID));
@@ -199,10 +228,19 @@ Private::clsDACPrivate::clsDACPrivate(const QSqlDatabase& _db) :
     DB(_db),
     Driver(Private::DACImpl::instance().driver(_db.driverName()))
 { ; }
+Private::clsDACPrivate::~clsDACPrivate()
+{;}
 /**********************************************************************************************************************/
+Private::clsDACResultPrivate::~clsDACResultPrivate()
+{ ; }
+/**********************************************************************************************************************/
+clsDACResult::clsDACResult() : d(new Private::clsDACResultPrivate(QSqlDatabase()))
+{ ; }
+
 clsDACResult::clsDACResult(const QSqlDatabase &_dbc) : d(new Private::clsDACResultPrivate(_dbc)) { ; }
 
-clsDACResult::~clsDACResult() {}
+clsDACResult::~clsDACResult()
+{;}
 
 QJsonDocument clsDACResult::toJson(bool _justSingle)
 {

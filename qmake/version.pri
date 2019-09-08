@@ -27,5 +27,7 @@ CONFIGS += c++11 c++14
 QT += core sql
 QT -= gui
 
+EXTERNAL_DEPS=1
+
 LIBS += -lTargomanCommon
 

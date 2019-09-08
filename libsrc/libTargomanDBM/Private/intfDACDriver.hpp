@@ -64,7 +64,6 @@ typedef  QList<stuSPParam>  SPParams_t;
 
 class intfDACDriver
 {
-
 public:
     virtual ~intfDACDriver(){ ; }
     virtual enuSQLAbstractDataType::Type   abstractDataType(const QString& _typeStr) = 0;
