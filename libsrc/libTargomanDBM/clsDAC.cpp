@@ -237,7 +237,11 @@ Private::clsDACResultPrivate::~clsDACResultPrivate()
 clsDACResult::clsDACResult() : d(new Private::clsDACResultPrivate(QSqlDatabase()))
 { ; }
 
-clsDACResult::clsDACResult(const QSqlDatabase &_dbc) : d(new Private::clsDACResultPrivate(_dbc)) { ; }
+clsDACResult::clsDACResult(const QSqlDatabase &_dbc) : d(new Private::clsDACResultPrivate(_dbc))
+{ ; }
+
+clsDACResult::clsDACResult(const clsDACResult &_other) : d(_other.d)
+{ ; }
 
 clsDACResult::~clsDACResult()
 {;}

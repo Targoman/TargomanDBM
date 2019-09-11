@@ -122,6 +122,7 @@ class clsDACResult
 public:
     clsDACResult();
     clsDACResult(const QSqlDatabase& _dbc);
+    clsDACResult(const clsDACResult& _dac);
     ~clsDACResult();
     int at();
     bool first();
