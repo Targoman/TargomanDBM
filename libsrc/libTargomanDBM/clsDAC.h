@@ -124,9 +124,9 @@ public:
                                     const QString& _entityName = "",
                                     const QString& _target = "");
     /**
-     * @brief runQuery A general static method to execute a Query String
+     * @brief execQuery A general method to execute a Query String
      * @param _opertaorID ID of the operator who has requested execution of query. This can be ActorName, Session ID
-     * (Started with #) or NULL (Started and ended with $)
+     * (Started with #) or NULL
      * @param _dbc Database connection to be used to execute this query
      * @param _queryStr Query String in SQL language to be executed
      * @param _params list of parameters to be replaced in query (if any)
@@ -141,9 +141,9 @@ public:
                            quint64* _executionTime = nullptr);
 
     /**
-     * @brief runQuery A general static method to execute a Query String
+     * @brief execQuery An overloaded static method to execute a Query String
      * @param _opertaorID ID of the operator who has requested execution of query. This can be ActorName, Session ID
-     * (Started with #) or NULL (Started and ended with $)
+     * (Started with #) or NULL
      * @param _dbc Database connection to be used to execute this query
      * @param _queryStr Query String in SQL language to be executed
      * @param _params list of parameters to be replaced in query (if any)
@@ -158,10 +158,47 @@ public:
                            quint64* _executionTime = nullptr);
 
     /**
+     * @brief execQueryCacheable A general method to execute a Query String with cached response
+     * @param _maxCacheTime Maximum time to keep old response
+     * @param _opertaorID ID of the operator who has requested execution of query. This can be ActorName, Session ID
+     * (Started with #) or NULL
+     * @param _dbc Database connection to be used to execute this query
+     * @param _queryStr Query String in SQL language to be executed
+     * @param _params list of parameters to be replaced in query (if any)
+     * @param _purpose An string to be shown in log and error messages before Query string or error messages
+     * @param _executionTime An optional storage to be used to report query execution time.
+     * @return if Query is select number of rows retrived else it will report Number of affected rows
+     */
+    clsDACResult execQueryCacheable(quint32 _maxCacheTime,
+                                    const QString& _opertaorID,
+                                    const QString &_queryStr,
+                                    const QVariantList &_params = QVariantList(),
+                                    const QString& _purpose = "",
+                                    quint64* _executionTime = nullptr);
+
+    /**
+     * @brief runQuery An overloaded method to execute a Query String with cached response
+     * @param _maxCacheTime Maximum time to keep old response
+     * @param _opertaorID ID of the operator who has requested execution of query. This can be ActorName, Session ID
+     * (Started with #) or NULL
+     * @param _dbc Database connection to be used to execute this query
+     * @param _queryStr Query String in SQL language to be executed
+     * @param _params list of parameters to be replaced in query (if any)
+     * @param _purpose An string to be shown in log and error messages before Query string or error messages
+     * @param _executionTime An optional storage to be used to report query execution time.
+     * @return if Query is select number of rows retrived else it will report Number of affected rows
+     */
+    clsDACResult execQueryCacheable(quint32 _maxCacheTime,
+                                    const QString& _opertaorID,
+                                    const QString &_queryStr,
+                                    const QVariantMap &_params,
+                                    const QString& _purpose = "",
+                                    quint64* _executionTime = nullptr);
+    /**
      * @brief callSP A complex method to be used to call stored procedures. This method will ease calling stored
      * procedures by ordering parameters, preparing outputs, binding and bounding all params, error checking, etc.
      * @param _opertaorID opertaorID ID of the operator who has requested execution of query. This can be ActorName, Session ID
-     * (Started with #) or NULL (Started and ended with $)
+     * (Started with #) or NULL
      * @param _resultStorage An storage to be used to store results of the executed query. This can be null if the
      * calling stored procedure has no direct or indirect outputs
      * @param _spName Name of the stored procedure to be called
@@ -177,9 +214,29 @@ public:
                 const QString& _purpose = "",
                 quint64* _executionTime = nullptr);
 
-
     /**
-     * @brief whichOnesAreUpdated A static method used to check wheter specified tables are updated or not. Depending
+     * @brief callSP A complex method to be used to call stored procedures with cached response. This method will ease calling stored
+     * procedures by ordering parameters, preparing outputs, binding and bounding all params, error checking, etc.
+     * @param _maxCacheTime Maximum time to keep old response
+     * @param _opertaorID opertaorID ID of the operator who has requested execution of query. This can be ActorName, Session ID
+     * (Started with #) or NULL
+     * @param _resultStorage An storage to be used to store results of the executed query. This can be null if the
+     * calling stored procedure has no direct or indirect outputs
+     * @param _spName Name of the stored procedure to be called
+     * @param _spArgs Input arguments of the stored procedure in aribitary order. this method will order them and also
+     * generate needed output variables of the SP. There is no need to provide ouput vriables but input value must be
+     * provided for INOUT params
+     * @param _purpose An string to be shown in log and error messages before Query string or error messages
+     * @param _executionTime An optional storage to be used to report SP Call and execution time
+     */
+    clsDACResult callSPCacheable(quint32 _maxCacheTime,
+                                 const QString& _agentID,
+                                 const QString& _spName,
+                                 const QVariantMap& _spArgs = QVariantMap(),
+                                 const QString& _purpose = "",
+                                 quint64* _executionTime = nullptr);
+    /**
+     * @brief whichOnesAreUpdated A method used to check wheter specified tables are updated or not. Depending
      * on the DB engine used by the specified connection there will be some restrictions and maybe not always accurate.
      * See dependent driver documentation.
      * @param _tableNames list of tabes to be checked if thy are updated or not.
@@ -191,7 +248,7 @@ public:
                                       QDateTime& _pLastCheckTime);
 
     /**
-     * @brief areSimilar this static method checks wheter two DB connections are similar or not. As QSQLDatabase
+     * @brief areSimilar This static method checks wheter two DB connections are similar or not. As QSQLDatabase
      * comparing methods will check also for connection name this method will be used to ignore connection name and just
      * compare their connection string.
      * @param _firstDBC First DB connection to be checked

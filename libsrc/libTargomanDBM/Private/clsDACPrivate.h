@@ -48,6 +48,7 @@ class clsDACPrivate
 {
 public:
     explicit clsDACPrivate(const QSqlDatabase& _db);
+    ~clsDACPrivate();
 
 public:
     QSqlDatabase DB;
@@ -59,6 +60,7 @@ public:
     explicit clsDACResultPrivate(const QSqlDatabase& _dbc) : Query(_dbc), WasSP(false) { ; }
     clsDACResultPrivate(const clsDACResultPrivate &other)
         : QSharedData(other), Query(other.Query), SPDirectOutputs(other.SPDirectOutputs ) { ; }
+    ~clsDACResultPrivate();
 
 public:
     QSqlQuery     Query;

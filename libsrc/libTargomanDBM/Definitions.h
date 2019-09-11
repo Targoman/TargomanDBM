@@ -104,9 +104,9 @@ TARGOMAN_DEFINE_ENUM(enuSQLAbstractDataType,
                      )
 
 class clsDAC;
+FORWARD_DECLARE_PRIVATE(clsDACResult)
+FORWARD_DECLARE_PRIVATE(clsDAC)
 namespace Private{
-class clsDACResultPrivate;
-class clsDACPrivate;
 class DACImpl;
 }
 
@@ -120,7 +120,9 @@ class DACImpl;
 class clsDACResult
 {
 public:
-    explicit clsDACResult(const QSqlDatabase& _dbc);
+    clsDACResult();
+    clsDACResult(const QSqlDatabase& _dbc);
+    clsDACResult(const clsDACResult& _dac);
     ~clsDACResult();
     int at();
     bool first();

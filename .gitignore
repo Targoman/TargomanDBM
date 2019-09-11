@@ -40,3 +40,4 @@ out
 Makefile*
 *.pro.user
 .*.stash
+build

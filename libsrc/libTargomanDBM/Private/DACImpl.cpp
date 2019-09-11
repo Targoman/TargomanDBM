@@ -26,6 +26,7 @@
 #include <QThread>
 #include <unistd.h>
 #include <QSqlError>
+#include <QCryptographicHash>
 
 #include "DACImpl.h"
 #include "Private/clsDACPrivate.h"
@@ -92,6 +93,9 @@ DACImpl::DACImpl() :
     this->DBCChecker = QtConcurrent::run(this, &DACImpl::purgeConnections);
     connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, this,  &DACImpl::shutdown);
 }
+
+DACImpl::~DACImpl()
+{ ; }
 
 QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entityName, const QString &_target, bool _clone, enuDBEngines::Type *_engineType, bool _returnBase)
 {
@@ -299,6 +303,48 @@ clsDACResult DACImpl::runQuery(clsDAC &_dac,
     }
 }
 
+clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
+                                        clsDAC &_dac,
+                                        const QString &_queryStr,
+                                        const QVariantList &_params,
+                                        const QString &_purpose,
+                                        quint64 *_executionTime)
+{
+    QStringList Args;
+    foreach(auto Item, _params)
+        Args.append(Item.toString());
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4);
+
+    clsDACResult DACResult = this->Cache.value(CacheKey);
+    if(DACResult.isValid() == false){
+        DACResult = this->runQuery(_dac, _queryStr, _params, _purpose, _executionTime);
+        this->Cache.insert(_ttl, CacheKey, DACResult);
+    }
+
+    return DACResult;
+}
+
+clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
+                                        clsDAC &_dac,
+                                        const QString &_queryStr,
+                                        const QVariantMap &_params,
+                                        const QString &_purpose,
+                                        quint64 *_executionTime)
+{
+    QStringList Args;
+    foreach(auto Item, _params)
+        Args.append(Item.toString());
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4);
+
+    clsDACResult DACResult = this->Cache.value(CacheKey);
+    if(DACResult.isValid() == false){
+        DACResult = this->runQuery(_dac, _queryStr, _params, _purpose, _executionTime);
+        this->Cache.insert(_ttl, CacheKey, DACResult);
+    }
+
+    return DACResult;
+}
+
 clsDACResult DACImpl::callSP(clsDAC &_dac,
                              const QString& _spName,
                              const QVariantMap &_spArgs,
@@ -373,6 +419,27 @@ clsDACResult DACImpl::callSP(clsDAC &_dac,
         }
     }
     return Result;
+}
+
+clsDACResult DACImpl::callSPCacheable(quint32 _ttl,
+                                      clsDAC &_dac,
+                                      const QString &_spName,
+                                      const QVariantMap &_spArgs,
+                                      const QString &_purpose,
+                                      quint64 *_executionTime)
+{
+    QStringList Args;
+    foreach(auto Item, _spArgs)
+        Args.append(Item.toString());
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_spName, Args.join(",")).toUtf8(),QCryptographicHash::Md4);
+
+    clsDACResult DACResult = this->Cache.value(CacheKey);
+    if(DACResult.isValid() == false){
+        DACResult = this->runQuery(_dac, _spName, _spArgs, _purpose, _executionTime);
+        this->Cache.insert(_ttl, CacheKey, DACResult);
+    }
+
+    return DACResult;
 }
 
 void DACImpl::setSecurityProvider(intfDACSecurity* _securityProvider)

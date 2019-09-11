@@ -59,6 +59,7 @@ INCLUDEPATH += $$PRJDIR \
                $$PRJDIR/libsrc \
                $$BaseLibraryIncludeFolder \
                $$PREFIX/include \
+               $(HOME)/local/include \
                $$DependencyIncludePaths/
 
 #+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-
@@ -66,7 +67,9 @@ DependencyLibPaths      +=   $$BaseLibraryFolder \
                              $$PRJDIR/out/lib64 \
                              $$PRJDIR/out/lib \
                              $$PREFIX/lib64 \
-                             $$PREFIX/lib
+                             $$PREFIX/lib \
+                             $(HOME)/local/lib \
+                             $(HOME)/local/lib64 \
 
 #+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-+-
 win32: DEFINES += _WINDOWS WIN32_LEAN_AND_MEAN NOMINMAX
@@ -100,7 +103,7 @@ defineTest(addSubdirs) {
 DEPS_BUILT = $$PRJDIR/out/.depsBuilt
 Dependencies.target  = $$DEPS_BUILT
 Dependencies.depends = FORCE
-unix: Dependencies.commands = $$PRJDIR/buildDependencies.sh $$PRJDIR $$DEPS_BUILT;
+unix: Dependencies.commands = $$PRJDIR/buildDependencies.sh $$PRJDIR $$DEPS_BUILT $$EXTERNAL_DEPS;
 win32: error(submodule auto-compile has not yet been implemented for windows)
 
 PRE_TARGETDEPS += $$DEPS_BUILT

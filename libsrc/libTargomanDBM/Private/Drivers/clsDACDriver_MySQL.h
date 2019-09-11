@@ -36,6 +36,7 @@ class clsDACDriver_MySQL : public intfDACDriver
 {
 public:
     clsDACDriver_MySQL();
+    ~clsDACDriver_MySQL();
 
     QStringList bindSPQuery(const QString& _spName,
                         const SPParams_t &_spParams,
