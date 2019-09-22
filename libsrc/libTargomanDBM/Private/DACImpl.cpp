@@ -139,7 +139,7 @@ QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entity
             *_engineType = enuDBEngines::toEnum(DB.driverName().toStdString().c_str());
         return DB;
     }
-    throw exTargomanDBMEngineNotSupported(QString("No engine registerd for %1 : %2 : %3").arg(
+    throw exTargomanDBMEngineNotSupported(QString("No DB engine registerd for %1 : %2 : %3").arg(
                                               _domain).arg(
                                               _entityName).arg(
                                               _target));

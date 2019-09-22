@@ -118,7 +118,7 @@ void clsDAC::setConnectionString(const QString& _conStr,
                                                                ParamPair[0].trimmed()));
         }
         else
-            throw exTargomanDBMInvalidConnectionString("Connection String parameters must be divided by = and ;", __LINE__);
+            throw exTargomanDBMInvalidConnectionString("Connection String parameters must be divided by = and ;");
     }
 
     if (!DB.isOpen())
