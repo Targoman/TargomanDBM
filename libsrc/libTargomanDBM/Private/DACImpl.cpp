@@ -313,7 +313,7 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
     QStringList Args;
     foreach(auto Item, _params)
         Args.append(Item.toString());
-    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4);
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
     if(DACResult.isValid() == false){
@@ -334,7 +334,7 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
     QStringList Args;
     foreach(auto Item, _params)
         Args.append(Item.toString());
-    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4);
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
     if(DACResult.isValid() == false){
@@ -431,7 +431,7 @@ clsDACResult DACImpl::callSPCacheable(quint32 _ttl,
     QStringList Args;
     foreach(auto Item, _spArgs)
         Args.append(Item.toString());
-    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_spName, Args.join(",")).toUtf8(),QCryptographicHash::Md4);
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_spName, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
     if(DACResult.isValid() == false){
@@ -551,16 +551,9 @@ void DACImpl::throwFormatted(const QSqlError &_error)
 {
     if(rxSQLError.exactMatch(_error.databaseText())){
         QStringList ErrorParts = _error.databaseText().split(':');
-        switch(ErrorParts.first().toUInt()){
-        case 400: throw exTargomanDBM_AAA_BadRequest(ErrorParts.last());
-        case 401: throw exTargomanDBM_AAA_Unauthorized(ErrorParts.last());
-        case 402: throw exTargomanDBM_AAA_PaymentRequired(ErrorParts.last());
-        case 403: throw exTargomanDBM_AAA_Forbidden(ErrorParts.last());
-        case 404: throw exTargomanDBM_AAA_NotFound(ErrorParts.last());
-        case 405: throw exTargomanDBM_AAA_NotAllowed(ErrorParts.last());
-        case 406: throw exTargomanDBM_AAA_NotAcceptable(ErrorParts.last());
-        case 409: throw exTargomanDBM_AAA_Conflict(ErrorParts.last());
-        }
+        quint32 ErrorCode = ErrorParts.first().toUInt();
+        if(ErrorCode >= 400 || ErrorCode < 600)
+            throw exDBInternalError(ErrorCode, ErrorParts.last ());
     }
 
     throw exTargomanDBMUnableToExecuteQuery(

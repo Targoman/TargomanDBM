@@ -289,8 +289,8 @@ QJsonDocument clsDACResult::toJson(bool _justSingle)
 
     if(this->d->WasSP){
         Json.setObject({
-                           {"rows", RecordsArray},
-                           {"direct", QJsonDocument::fromVariant(this->d->SPDirectOutputs).object()}
+                           {DBM_SPRESULT_ROWS, RecordsArray},
+                           {DBM_SPRESULT_DIRECT, QJsonDocument::fromVariant(this->d->SPDirectOutputs).object()}
                        });
     }else if(_justSingle){
         if(RecordsArray.count() > 0)

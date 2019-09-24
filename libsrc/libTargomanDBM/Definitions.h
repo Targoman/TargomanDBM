@@ -46,27 +46,24 @@ TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMEngineNotRegistered, exTargomanDBM);
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMInvalidConnectionString, exTargomanDBM);
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMUnableToExecuteQuery, exTargomanDBM);
 
-
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMUnableToPrepareQuery, exTargomanDBM);
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMUnableToBindQuery, exTargomanDBM);
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMConnectionLost, exTargomanDBMUnableToExecuteQuery);
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMQueryResultNotReady, exTargomanDBM);
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMNotEnoughPrivileges, exTargomanDBM);
 
-TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_BadRequest, exTargomanDBMUnableToExecuteQuery);
-TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_Unauthorized, exTargomanDBMUnableToExecuteQuery);
-TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_PaymentRequired, exTargomanDBMUnableToExecuteQuery);
-TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_Forbidden, exTargomanDBMUnableToExecuteQuery);
-TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_NotFound, exTargomanDBMUnableToExecuteQuery);
-TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_NotAllowed, exTargomanDBMUnableToExecuteQuery);
-TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_NotAcceptable, exTargomanDBMUnableToExecuteQuery);
-TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM_AAA_Conflict, exTargomanDBMUnableToExecuteQuery);
+class exDBInternalError : public Targoman::Common::exTargomanBase {
+public:
+    exDBInternalError(quint16 _errorCode, const QString& _message):
+        Targoman::Common::exTargomanBase(_message, _errorCode){}
+};
 
 /**
  * @brief DEFAULT_DB_NAME A const name to be added to all connection names in order to specialize all ETS connections
  */
-const QString DEFAULT_DB_NAME="TGMNDAC";
-
+constexpr char DEFAULT_DB_NAME[]="TGMNDAC";
+constexpr char DBM_SPRESULT_ROWS[]="rows";
+constexpr char DBM_SPRESULT_DIRECT[]="direct";
 /**
  *  @enum enuDBEngines Enumeration to be used in order to specify engine types.
  *  @value     MySQL  MySQL, MariaDB
