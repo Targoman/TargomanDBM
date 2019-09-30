@@ -435,7 +435,7 @@ clsDACResult DACImpl::callSPCacheable(quint32 _ttl,
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
     if(DACResult.isValid() == false){
-        DACResult = this->runQuery(_dac, _spName, _spArgs, _purpose, _executionTime);
+        DACResult = this->callSP(_dac, _spName, _spArgs, _purpose, _executionTime);
         this->Cache.insert(_ttl, CacheKey, DACResult);
     }
 
