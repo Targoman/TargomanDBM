@@ -168,7 +168,6 @@ qint64 DACImpl::runQueryBase(intfDACDriver* _driver,
             Result = _sqlQuery.exec();
         *_executionTime = static_cast<quint64>(Timer.elapsed());
     }else{
-        Result = _sqlQuery.exec();
         if(_sqlQuery.lastQuery().startsWith("CALL")){
             QString Query = _sqlQuery.lastQuery();
             Result = _sqlQuery.exec(Query);
