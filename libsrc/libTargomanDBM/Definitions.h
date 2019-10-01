@@ -142,6 +142,7 @@ public:
     QVariant value(const QString& _colName) const;
     int colIndex(const QString& _colName);
 
+    QVariantMap spDirectOutputs();
     QJsonDocument toJson(bool _justSingle);
 private:
     QSharedDataPointer<Private::clsDACResultPrivate> d;

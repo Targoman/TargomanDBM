@@ -413,5 +413,12 @@ int clsDACResult::colIndex(const QString& _colName)
     return Index;
 }
 
+QVariantMap clsDACResult::spDirectOutputs()
+{
+    if(this->d->WasSP == false)
+        throw exTargomanDBM("Last query was no a call to Stored procedure");
+    return this->d->SPDirectOutputs;
+}
+
 }
 }
