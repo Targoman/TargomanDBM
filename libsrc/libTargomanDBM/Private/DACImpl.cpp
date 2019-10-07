@@ -139,7 +139,7 @@ QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entity
             *_engineType = enuDBEngines::toEnum(DB.driverName().toStdString().c_str());
         return DB;
     }
-    throw exTargomanDBMEngineNotSupported(QString("No engine registerd for %1 : %2 : %3").arg(
+    throw exTargomanDBMEngineNotSupported(QString("No DB engine registerd for %1 : %2 : %3").arg(
                                               _domain).arg(
                                               _entityName).arg(
                                               _target));
@@ -168,7 +168,6 @@ qint64 DACImpl::runQueryBase(intfDACDriver* _driver,
             Result = _sqlQuery.exec();
         *_executionTime = static_cast<quint64>(Timer.elapsed());
     }else{
-        Result = _sqlQuery.exec();
         if(_sqlQuery.lastQuery().startsWith("CALL")){
             QString Query = _sqlQuery.lastQuery();
             Result = _sqlQuery.exec(Query);
@@ -313,7 +312,7 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
     QStringList Args;
     foreach(auto Item, _params)
         Args.append(Item.toString());
-    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4);
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
     if(DACResult.isValid() == false){
@@ -334,7 +333,7 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
     QStringList Args;
     foreach(auto Item, _params)
         Args.append(Item.toString());
-    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4);
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
     if(DACResult.isValid() == false){
@@ -431,11 +430,11 @@ clsDACResult DACImpl::callSPCacheable(quint32 _ttl,
     QStringList Args;
     foreach(auto Item, _spArgs)
         Args.append(Item.toString());
-    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_spName, Args.join(",")).toUtf8(),QCryptographicHash::Md4);
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_spName, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
     if(DACResult.isValid() == false){
-        DACResult = this->runQuery(_dac, _spName, _spArgs, _purpose, _executionTime);
+        DACResult = this->callSP(_dac, _spName, _spArgs, _purpose, _executionTime);
         this->Cache.insert(_ttl, CacheKey, DACResult);
     }
 
@@ -551,16 +550,9 @@ void DACImpl::throwFormatted(const QSqlError &_error)
 {
     if(rxSQLError.exactMatch(_error.databaseText())){
         QStringList ErrorParts = _error.databaseText().split(':');
-        switch(ErrorParts.first().toUInt()){
-        case 400: throw exTargomanDBM_AAA_BadRequest(ErrorParts.last());
-        case 401: throw exTargomanDBM_AAA_Unauthorized(ErrorParts.last());
-        case 402: throw exTargomanDBM_AAA_PaymentRequired(ErrorParts.last());
-        case 403: throw exTargomanDBM_AAA_Forbidden(ErrorParts.last());
-        case 404: throw exTargomanDBM_AAA_NotFound(ErrorParts.last());
-        case 405: throw exTargomanDBM_AAA_NotAllowed(ErrorParts.last());
-        case 406: throw exTargomanDBM_AAA_NotAcceptable(ErrorParts.last());
-        case 409: throw exTargomanDBM_AAA_Conflict(ErrorParts.last());
-        }
+        quint32 ErrorCode = ErrorParts.first().toUInt();
+        if(ErrorCode >= 400 || ErrorCode < 600)
+            throw exDBInternalError(ErrorCode, ErrorParts.last ());
     }
 
     throw exTargomanDBMUnableToExecuteQuery(

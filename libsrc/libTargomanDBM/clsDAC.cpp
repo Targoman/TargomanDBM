@@ -118,7 +118,7 @@ void clsDAC::setConnectionString(const QString& _conStr,
                                                                ParamPair[0].trimmed()));
         }
         else
-            throw exTargomanDBMInvalidConnectionString("Connection String parameters must be divided by = and ;", __LINE__);
+            throw exTargomanDBMInvalidConnectionString("Connection String parameters must be divided by = and ;");
     }
 
     if (!DB.isOpen())
@@ -289,8 +289,8 @@ QJsonDocument clsDACResult::toJson(bool _justSingle)
 
     if(this->d->WasSP){
         Json.setObject({
-                           {"rows", RecordsArray},
-                           {"direct", QJsonDocument::fromVariant(this->d->SPDirectOutputs).object()}
+                           {DBM_SPRESULT_ROWS, RecordsArray},
+                           {DBM_SPRESULT_DIRECT, QJsonDocument::fromVariant(this->d->SPDirectOutputs).object()}
                        });
     }else if(_justSingle){
         if(RecordsArray.count() > 0)
@@ -411,6 +411,13 @@ int clsDACResult::colIndex(const QString& _colName)
                "Retrieving Column Index",
                qPrintable("Invalid Column Name: " + _colName));
     return Index;
+}
+
+QVariantMap clsDACResult::spDirectOutputs()
+{
+    if(this->d->WasSP == false)
+        throw exTargomanDBM("Last query was no a call to Stored procedure");
+    return this->d->SPDirectOutputs;
 }
 
 }

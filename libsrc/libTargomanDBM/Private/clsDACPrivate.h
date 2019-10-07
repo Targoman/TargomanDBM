@@ -64,7 +64,7 @@ public:
 
 public:
     QSqlQuery     Query;
-    QVariantHash  SPDirectOutputs;
+    QVariantMap   SPDirectOutputs;
     bool          WasSP;
     qint64        AffectedRows;
 };
