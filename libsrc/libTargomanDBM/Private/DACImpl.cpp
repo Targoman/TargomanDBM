@@ -119,8 +119,8 @@ QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entity
                 }
                 QString ThreadSafeConnection = _checkStr;
                 if (QSqlDatabase::contains(
-                            ThreadSafeConnection.replace(DEFAULT_DB_NAME,
-                                                         DEFAULT_DB_NAME + QString("^%1^").arg(reinterpret_cast<quint64>(QThread::currentThreadId())))))
+                        ThreadSafeConnection.replace(DEFAULT_DB_NAME,
+                                                     DEFAULT_DB_NAME + QString("^%1^").arg(reinterpret_cast<quint64>(QThread::currentThreadId())))))
                     DB = QSqlDatabase::database(ThreadSafeConnection, false);
                 else
                     DB = QSqlDatabase::cloneDatabase(QSqlDatabase::database(Connection, false), ThreadSafeConnection);
@@ -199,12 +199,15 @@ qint64 DACImpl::runQueryBase(intfDACDriver* _driver,
                              const QString& _purpose,
                              quint64* _executionTime)
 {
-    if(!_resultStorage.d->Query.prepare (_queryStr))
-        throw exTargomanDBMUnableToPrepareQuery(_queryStr);
+    if(_params.isEmpty())
+        _resultStorage.d->Query = QSqlQuery(_queryStr, _resultStorage.d->Database);
+    else {
+        if(!_resultStorage.d->Query.prepare (_queryStr))
+            throw exTargomanDBMUnableToPrepareQuery(_queryStr);
 
-    if (_params.size())
         foreach(auto Param, _params)
             _resultStorage.d->Query.addBindValue(Param);
+    }
 
     _resultStorage.d->AffectedRows = this->runQueryBase (_driver, _resultStorage.d->Query, _purpose, _executionTime);
     return _resultStorage.d->AffectedRows;
@@ -217,12 +220,14 @@ qint64 DACImpl::runQueryBase(intfDACDriver *_driver,
                              const QString &_purpose,
                              quint64 *_executionTime)
 {
-    if(!_resultStorage.d->Query.prepare (_queryStr))
-        throw exTargomanDBMUnableToPrepareQuery(_queryStr);
-    if (_params.size())
+    if(_params.isEmpty())
+        _resultStorage.d->Query = QSqlQuery(_queryStr, _resultStorage.d->Database);
+    else {
+        if(!_resultStorage.d->Query.prepare (_queryStr))
+            throw exTargomanDBMUnableToPrepareQuery(_queryStr);
         for(auto ParamIter = _params.begin(); ParamIter != _params.end(); ++ParamIter)
             _resultStorage.d->Query.bindValue(ParamIter.key(), ParamIter.value());
-
+    }
     _resultStorage.d->AffectedRows = this->runQueryBase (_driver, _resultStorage.d->Query, _purpose, _executionTime);
     return _resultStorage.d->AffectedRows;
 }
@@ -520,8 +525,8 @@ void DACImpl::purgeConnections()
 QSqlDatabase DACImpl::getThreadDBC(const QSqlDatabase &_dbc)
 {
     QString ThreadSafeConnName = _dbc.connectionName().replace(
-                DEFAULT_DB_NAME,
-                QString("%1^%2^").arg(DEFAULT_DB_NAME).arg(reinterpret_cast<quint64>(QThread::currentThreadId())));
+                                     DEFAULT_DB_NAME,
+                                     QString("%1^%2^").arg(DEFAULT_DB_NAME).arg(reinterpret_cast<quint64>(QThread::currentThreadId())));
 
     if (_dbc.connectionName().contains(QString("^%1^").arg(reinterpret_cast<quint64>(QThread::currentThreadId()))))
         return _dbc;

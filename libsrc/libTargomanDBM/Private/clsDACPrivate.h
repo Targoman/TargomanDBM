@@ -57,13 +57,14 @@ public:
 
 class clsDACResultPrivate : public QSharedData{
 public:
-    explicit clsDACResultPrivate(const QSqlDatabase& _dbc) : Query(_dbc), WasSP(false) { ; }
+    explicit clsDACResultPrivate(const QSqlDatabase& _dbc) : Query(_dbc), Database(_dbc), WasSP(false) { ; }
     clsDACResultPrivate(const clsDACResultPrivate &other)
         : QSharedData(other), Query(other.Query), SPDirectOutputs(other.SPDirectOutputs ) { ; }
     ~clsDACResultPrivate();
 
 public:
     QSqlQuery     Query;
+    QSqlDatabase  Database;
     QVariantMap   SPDirectOutputs;
     bool          WasSP;
     qint64        AffectedRows;
