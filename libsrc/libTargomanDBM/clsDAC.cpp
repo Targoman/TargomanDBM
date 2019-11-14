@@ -38,7 +38,7 @@ clsDAC::clsDAC(const QString& _domain,
                const QString& _entityName,
                const QString& _target,
                bool _clone) :
-    pPrivate(new Private::clsDACPrivate(Private::DACImpl::instance ().getDBEngine(_domain, _entityName, _target, _clone)))
+    pPrivate(new Private::clsDACPrivate(Private::DACImpl::instance().getDBEngine(_domain, _entityName, _target, _clone)))
 { ; }
 
 clsDAC::~clsDAC()

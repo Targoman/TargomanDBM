@@ -177,7 +177,7 @@
 #define __NO_INLINE__ 1
 #define __FLT_MANT_DIG__ 24
 #define __LDBL_DECIMAL_DIG__ 21
-#define __VERSION__ "7.4.1 20190424 [gcc-7-branch revision 270538]"
+#define __VERSION__ "7.4.1 20190905 [gcc-7-branch revision 275407]"
 #define __UINT64_C(c) c ## UL
 #define __cpp_unicode_characters 200704
 #define _STDC_PREDEF_H 1

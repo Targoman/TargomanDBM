@@ -145,7 +145,7 @@ QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entity
                                               _target));
 }
 
-qint64 DACImpl::runQueryBase(intfDACDriver* _driver,
+qint64 DACImpl::runPreparedQuery(intfDACDriver* _driver,
                              QSqlQuery &_sqlQuery,
                              const QString& _purpose,
                              quint64* _executionTime)
@@ -161,19 +161,10 @@ qint64 DACImpl::runQueryBase(intfDACDriver* _driver,
     if(_executionTime){
         QTime Timer;
         Timer.start();
-        if(_sqlQuery.lastQuery().startsWith("CALL")){
-            QString Query = _sqlQuery.lastQuery();
-            Result = _sqlQuery.exec(Query);
-        }else
-            Result = _sqlQuery.exec();
+        Result = _sqlQuery.exec();
         *_executionTime = static_cast<quint64>(Timer.elapsed());
-    }else{
-        if(_sqlQuery.lastQuery().startsWith("CALL")){
-            QString Query = _sqlQuery.lastQuery();
-            Result = _sqlQuery.exec(Query);
-        }else
-            Result = _sqlQuery.exec();
-    }
+    }else
+        Result = _sqlQuery.exec();
 
     if(!Result){
         if(_driver->wasConnectionLost(_sqlQuery.lastError()))
@@ -192,44 +183,82 @@ qint64 DACImpl::runQueryBase(intfDACDriver* _driver,
         return _sqlQuery.numRowsAffected();
 }
 
-qint64 DACImpl::runQueryBase(intfDACDriver* _driver,
+qint64 DACImpl::runQueryMiddleware(intfDACDriver* _driver,
                              clsDACResult& _resultStorage,
                              const QString &_queryStr,
                              const QVariantList &_params,
                              const QString& _purpose,
                              quint64* _executionTime)
 {
-    if(_params.isEmpty())
+    if(_params.isEmpty()){
         _resultStorage.d->Query = QSqlQuery(_queryStr, _resultStorage.d->Database);
-    else {
+        _resultStorage.d->AffectedRows = this->runDirectQuery(_driver, _resultStorage.d->Query, _queryStr, _purpose, _executionTime);
+    } else {
         if(!_resultStorage.d->Query.prepare (_queryStr))
             throw exTargomanDBMUnableToPrepareQuery(_queryStr);
 
         foreach(auto Param, _params)
             _resultStorage.d->Query.addBindValue(Param);
+        _resultStorage.d->AffectedRows = this->runPreparedQuery(_driver, _resultStorage.d->Query, _purpose, _executionTime);
     }
 
-    _resultStorage.d->AffectedRows = this->runQueryBase (_driver, _resultStorage.d->Query, _purpose, _executionTime);
     return _resultStorage.d->AffectedRows;
 }
 
-qint64 DACImpl::runQueryBase(intfDACDriver *_driver,
+qint64 DACImpl::runQueryMiddleware(intfDACDriver *_driver,
                              clsDACResult& _resultStorage,
                              const QString &_queryStr,
                              const QVariantMap &_params,
                              const QString &_purpose,
                              quint64 *_executionTime)
 {
-    if(_params.isEmpty())
-        _resultStorage.d->Query = QSqlQuery(_queryStr, _resultStorage.d->Database);
-    else {
+    if(_params.isEmpty()){
+        _resultStorage.d->Query = QSqlQuery(_resultStorage.d->Database);
+        _resultStorage.d->AffectedRows = this->runDirectQuery(_driver, _resultStorage.d->Query, _queryStr, _purpose, _executionTime);
+    }else {
         if(!_resultStorage.d->Query.prepare (_queryStr))
             throw exTargomanDBMUnableToPrepareQuery(_queryStr);
         for(auto ParamIter = _params.begin(); ParamIter != _params.end(); ++ParamIter)
             _resultStorage.d->Query.bindValue(ParamIter.key(), ParamIter.value());
+        _resultStorage.d->AffectedRows = this->runPreparedQuery(_driver, _resultStorage.d->Query, _purpose, _executionTime);
     }
-    _resultStorage.d->AffectedRows = this->runQueryBase (_driver, _resultStorage.d->Query, _purpose, _executionTime);
     return _resultStorage.d->AffectedRows;
+}
+
+qint64 DACImpl::runDirectQuery(intfDACDriver* _driver, QSqlQuery &_sqlQuery, const QString& _queryString, const QString& _purpose, quint64* _executionTime)
+{
+    if (_purpose == "[NO_LOG]"){
+        TargomanDebug(5, QString("[%2: Query: %1").arg(_queryString,_purpose).toUtf8().constData());
+    }else{
+        TargomanLogDebug(5, QString("[%2]: Query: %1").arg(_queryString,_purpose));
+    }
+
+    bool Result;
+
+    if(_executionTime){
+        QTime Timer;
+        Timer.start();
+        Result = _sqlQuery.exec(_queryString);
+        *_executionTime = static_cast<quint64>(Timer.elapsed());
+    }else
+        Result = _sqlQuery.exec(_queryString);
+
+
+    if(!Result){
+        if(_driver->wasConnectionLost(_sqlQuery.lastError()))
+            throw exTargomanDBMConnectionLost(
+                    QString(
+                        "Connection lost when executing query: [%1] %2").arg(
+                        _sqlQuery.lastError().nativeErrorCode()).arg(
+                        _sqlQuery.lastError().databaseText()));
+        else
+            throwFormatted(_sqlQuery.lastError());
+    }
+
+    if (_sqlQuery.isSelect())
+        return _sqlQuery.size();
+    else
+        return _sqlQuery.numRowsAffected();
 }
 
 clsDACResult DACImpl::runQuery(clsDAC &_dac,
@@ -252,7 +281,7 @@ clsDACResult DACImpl::runQuery(clsDAC &_dac,
         try{
             clsDACPrivate_OpenDB(DBC);
 
-            this->runQueryBase(_dac.pPrivate->Driver, Result, _queryStr, _params, _purpose);
+            this->runQueryMiddleware(_dac.pPrivate->Driver, Result, _queryStr, _params, _purpose);
             if(_executionTime)
                 *_executionTime = static_cast<quint64>(Timer.elapsed());
             return Result;
@@ -289,7 +318,7 @@ clsDACResult DACImpl::runQuery(clsDAC &_dac,
         try{
             clsDACPrivate_OpenDB(DBC);
 
-            this->runQueryBase(_dac.pPrivate->Driver, Result, _queryStr, _params, _purpose);
+            this->runQueryMiddleware(_dac.pPrivate->Driver, Result, _queryStr, _params, _purpose);
             if(_executionTime)
                 *_executionTime = static_cast<quint64>(Timer.elapsed());
             return Result;
@@ -380,7 +409,7 @@ clsDACResult DACImpl::callSP(clsDAC &_dac,
             QStringList QueryStrings = Driver->bindSPQuery(_spName, SPParams, _spArgs, BoundingVars);
 
             foreach (const QString& QueryStr, QueryStrings) {
-                this->runQueryBase(_dac.pPrivate->Driver, Result, QueryStr, QVariantList(), _purpose, _executionTime);
+                this->runQueryMiddleware(_dac.pPrivate->Driver, Result, QueryStr, QVariantList(), _purpose, _executionTime);
                 if (_executionTime)
                     FirstExecutionTime += *_executionTime;
             }
@@ -388,7 +417,7 @@ clsDACResult DACImpl::callSP(clsDAC &_dac,
             if (BoundingVars.size()) {
                 QString QueryStr = Driver->boundSPQuery(_spName, BoundingVars);
                 clsDACResult BoundingResult(DBC);
-                this->runQueryBase(_dac.pPrivate->Driver, BoundingResult, QueryStr, QVariantList(), _purpose, _executionTime);
+                this->runQueryMiddleware(_dac.pPrivate->Driver, BoundingResult, QueryStr, QVariantList(), _purpose, _executionTime);
 
                 if (_executionTime)
                     *_executionTime += FirstExecutionTime;
