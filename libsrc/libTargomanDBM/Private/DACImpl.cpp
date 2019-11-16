@@ -191,7 +191,8 @@ qint64 DACImpl::runQueryMiddleware(intfDACDriver* _driver,
                              quint64* _executionTime)
 {
     if(_params.isEmpty()){
-        _resultStorage.d->Query = QSqlQuery(_queryStr, _resultStorage.d->Database);
+        _resultStorage.d->Query.clear();
+        _resultStorage.d->Query = QSqlQuery(_resultStorage.d->Database);
         _resultStorage.d->AffectedRows = this->runDirectQuery(_driver, _resultStorage.d->Query, _queryStr, _purpose, _executionTime);
     } else {
         if(!_resultStorage.d->Query.prepare (_queryStr))
@@ -213,6 +214,7 @@ qint64 DACImpl::runQueryMiddleware(intfDACDriver *_driver,
                              quint64 *_executionTime)
 {
     if(_params.isEmpty()){
+        _resultStorage.d->Query.clear();
         _resultStorage.d->Query = QSqlQuery(_resultStorage.d->Database);
         _resultStorage.d->AffectedRows = this->runDirectQuery(_driver, _resultStorage.d->Query, _queryStr, _purpose, _executionTime);
     }else {
