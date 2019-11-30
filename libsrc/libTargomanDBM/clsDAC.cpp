@@ -253,7 +253,9 @@ QJsonDocument clsDACResult::toJson(bool _justSingle)
     while(this->d->Query.next()) {
         QJsonObject        recordObject;
         for(int i = 0; i < this->d->Query.record().count(); ++i){
-            QVariant Value = this->d->Query.value(i);
+            QVariant Value;
+            if(this->d->Query.isNull(i) == false)
+                Value = this->d->Query.value(i);
             QString ValueStr = Value.toString();
 
             QJsonParseError Error;
