@@ -258,6 +258,14 @@ QJsonDocument clsDACResult::toJson(bool _justSingle)
                 Value = this->d->Query.value(i);
             QString ValueStr = Value.toString();
 
+            if(ValueStr.size() && ValueStr.at(0) == '\0'){
+                ValueStr = "false";
+                Value = QVariant(false);
+            }else if(ValueStr.size() && ValueStr.at(0) == '\1'){
+                ValueStr = "true";
+                Value = QVariant(true);
+            }
+
             QJsonParseError Error;
             if(ValueStr.size() > 5 &&
                *ValueStr.toLatin1().begin() == '{' &&
