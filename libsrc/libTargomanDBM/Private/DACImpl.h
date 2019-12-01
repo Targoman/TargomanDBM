@@ -79,7 +79,7 @@ public:
                              bool _clone = false,
                              enuDBEngines::Type* _engineType = nullptr,
                              bool _returnBase = false);
-    qint64 runQueryBase(intfDACDriver *_driver, QSqlQuery& _sqlQuery, const QString &_purpose, quint64 *_executionTime = nullptr);
+    qint64 runPreparedQuery(intfDACDriver *_driver, QSqlQuery& _sqlQuery, const QString &_purpose, quint64 *_executionTime = nullptr);
 
     clsDACResult runQuery(clsDAC& _dac,
                           const QString &_queryStr,
@@ -128,19 +128,22 @@ public:
     intfDACDriver* driver(const QString _driverName);
 
 private:
-    qint64 runQueryBase(intfDACDriver* _driver,
-                        clsDACResult &_resultStorage,
-                        const QString& _queryStr,
-                        const QVariantList& _params = QVariantList(),
-                        const QString& _purpose  = "",
-                        quint64* _executionTime  = nullptr);
+    qint64 runQueryMiddleware(intfDACDriver* _driver,
+                              clsDACResult &_resultStorage,
+                              const QString& _queryStr,
+                              const QVariantList& _params = QVariantList(),
+                              const QString& _purpose  = "",
+                              quint64* _executionTime  = nullptr);
 
-    qint64 runQueryBase(intfDACDriver* _driver,
-                        clsDACResult &_resultStorage,
-                        const QString& _queryStr,
-                        const QVariantMap& _params = QVariantMap(),
-                        const QString& _purpose  = "",
-                        quint64* _executionTime  = nullptr);
+    qint64 runQueryMiddleware(intfDACDriver* _driver,
+                              clsDACResult &_resultStorage,
+                              const QString& _queryStr,
+                              const QVariantMap& _params = QVariantMap(),
+                              const QString& _purpose  = "",
+                              quint64* _executionTime  = nullptr);
+
+    qint64 runDirectQuery(intfDACDriver *_driver, QSqlQuery& _sqlQuery, const QString& _queryString, const QString &_purpose, quint64 *_executionTime = nullptr);
+
     void setSecurityProvider(intfDACSecurity* _securityProvider);
 
     SPParams_t getSPParams(intfDACDriver* _driver,

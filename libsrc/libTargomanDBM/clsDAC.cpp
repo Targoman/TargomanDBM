@@ -38,7 +38,7 @@ clsDAC::clsDAC(const QString& _domain,
                const QString& _entityName,
                const QString& _target,
                bool _clone) :
-    pPrivate(new Private::clsDACPrivate(Private::DACImpl::instance ().getDBEngine(_domain, _entityName, _target, _clone)))
+    pPrivate(new Private::clsDACPrivate(Private::DACImpl::instance().getDBEngine(_domain, _entityName, _target, _clone)))
 { ; }
 
 clsDAC::~clsDAC()
@@ -253,8 +253,18 @@ QJsonDocument clsDACResult::toJson(bool _justSingle)
     while(this->d->Query.next()) {
         QJsonObject        recordObject;
         for(int i = 0; i < this->d->Query.record().count(); ++i){
-            QVariant Value = this->d->Query.value(i);
+            QVariant Value;
+            if(this->d->Query.isNull(i) == false)
+                Value = this->d->Query.value(i);
             QString ValueStr = Value.toString();
+
+            if(ValueStr.size() && ValueStr.at(0) == '\0'){
+                ValueStr = "false";
+                Value = QVariant(false);
+            }else if(ValueStr.size() && ValueStr.at(0) == '\1'){
+                ValueStr = "true";
+                Value = QVariant(true);
+            }
 
             QJsonParseError Error;
             if(ValueStr.size() > 5 &&

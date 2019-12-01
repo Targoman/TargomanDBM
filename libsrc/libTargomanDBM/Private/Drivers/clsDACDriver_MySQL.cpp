@@ -201,7 +201,7 @@ SPParams_t clsDACDriver_MySQL::getSPParams(QSqlQuery& _connectedQuery,
                             );
     _connectedQuery.addBindValue(Schema);
     _connectedQuery.addBindValue(Procedure);
-    DACImpl::instance().runQueryBase(this,
+    DACImpl::instance().runPreparedQuery(this,
                                      _connectedQuery,
                                      "Retriving SP Parameters Order");
     SPParams_t SPParams;
@@ -237,7 +237,7 @@ SPParams_t clsDACDriver_MySQL::getSPParams(QSqlQuery& _connectedQuery,
                                 );
         _connectedQuery.addBindValue(Schema);
         _connectedQuery.addBindValue(Procedure);
-        DACImpl::instance().runQueryBase(this,
+        DACImpl::instance().runPreparedQuery(this,
                                          _connectedQuery,
                                          "check SP existence without input params");
 
