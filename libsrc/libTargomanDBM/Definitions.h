@@ -142,8 +142,8 @@ public:
     QVariant value(const QString& _colName) const;
     int colIndex(const QString& _colName);
 
-    QVariantMap spDirectOutputs();
-    QJsonDocument toJson(bool _justSingle);
+    QVariantMap spDirectOutputs(const QMap<QString, std::function<QVariant(const QVariant& _value)>> _converters = {});
+    QJsonDocument toJson(bool _justSingle, const QMap<QString, std::function<QVariant(const QVariant& _value)>> _converters = {});
 private:
     QSharedDataPointer<Private::clsDACResultPrivate> d;
     friend class Targoman::DBManager::Private::DACImpl;
