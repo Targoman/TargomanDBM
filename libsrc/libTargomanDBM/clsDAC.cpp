@@ -133,10 +133,10 @@ void clsDAC::setConnectionString(const QString& _conStr,
 
 /* ----------------------------------------------- */
 clsDACResult clsDAC::callSP(const QString& _agentID,
-                    const QString& _spName,
-                    const QVariantMap& _spArgs,
-                    const QString& _purpose,
-                    quint64* _executionTime)
+                            const QString& _spName,
+                            const QVariantMap& _spArgs,
+                            const QString& _purpose,
+                            quint64* _executionTime)
 {
     if (Private::DACImpl::instance().securityProvider()->isSPCallAllowed(_agentID, _spName, _spArgs))
         return  Private::DACImpl::instance().callSP(*this, _spName,_spArgs, _purpose, _executionTime);
@@ -246,7 +246,7 @@ clsDACResult::clsDACResult(const clsDACResult &_other) : d(_other.d)
 clsDACResult::~clsDACResult()
 {;}
 
-QJsonDocument clsDACResult::toJson(bool _justSingle)
+QJsonDocument clsDACResult::toJson(bool _justSingle, const QMap<QString, std::function<QVariant(const QVariant&)>> _converters)
 {
     QJsonDocument  Json;
     QJsonArray     RecordsArray;
@@ -272,9 +272,14 @@ QJsonDocument clsDACResult::toJson(bool _justSingle)
                *(ValueStr.toLatin1().end()-1) == '}'){
                 QJsonDocument Doc = QJsonDocument::fromJson(ValueStr.toUtf8(), &Error);
                 if(Error.error == QJsonParseError::NoError){
-                    recordObject.insert(this->d->Query.record().fieldName(i),
-                                        Doc.object()
-                                        );
+                    if(_converters.contains(this->d->Query.record().fieldName(i)))
+                        recordObject.insert(this->d->Query.record().fieldName(i),
+                                            QJsonValue::fromVariant(_converters.value(this->d->Query.record().fieldName(i))(Doc.object()))
+                                            );
+                    else
+                        recordObject.insert(this->d->Query.record().fieldName(i),
+                                            Doc.object()
+                                            );
                     continue;
                 }
             }
@@ -283,15 +288,25 @@ QJsonDocument clsDACResult::toJson(bool _justSingle)
                 *(ValueStr.toLatin1().end()-1)== ']'){
                 QJsonDocument Doc = QJsonDocument::fromJson(ValueStr.toUtf8(), &Error);
                 if(Error.error == QJsonParseError::NoError){
-                    recordObject.insert(this->d->Query.record().fieldName(i),
-                                        Doc.array()
-                                        );
+                    if(_converters.contains(this->d->Query.record().fieldName(i)))
+                        recordObject.insert(this->d->Query.record().fieldName(i),
+                                            QJsonValue::fromVariant(_converters.value(this->d->Query.record().fieldName(i))(Doc.array()))
+                                            );
+                    else
+                        recordObject.insert(this->d->Query.record().fieldName(i),
+                                            Doc.array()
+                                            );
                     continue;
                 }
 
             }
-            recordObject.insert( this->d->Query.record().fieldName(i),
-                                 QJsonValue::fromVariant(Value) );
+            if(_converters.contains(this->d->Query.record().fieldName(i)))
+
+                recordObject.insert( this->d->Query.record().fieldName(i),
+                                     QJsonValue::fromVariant(_converters.value(this->d->Query.record().fieldName(i))(Value)) );
+            else
+                recordObject.insert( this->d->Query.record().fieldName(i),
+                                     QJsonValue::fromVariant(Value) );
         }
 
         RecordsArray.push_back(recordObject);
@@ -423,10 +438,18 @@ int clsDACResult::colIndex(const QString& _colName)
     return Index;
 }
 
-QVariantMap clsDACResult::spDirectOutputs()
+QVariantMap clsDACResult::spDirectOutputs(const QMap<QString, std::function<QVariant(const QVariant&)>> _converters)
 {
     if(this->d->WasSP == false)
         throw exTargomanDBM("Last query was no a call to Stored procedure");
+    if(_converters.size())
+        for (auto OutputIter  = this->d->SPDirectOutputs.begin();
+             OutputIter != this->d->SPDirectOutputs.end();
+             ++OutputIter
+             )
+            if(_converters.contains(OutputIter.key()))
+                OutputIter.value() =_converters.value(OutputIter.key())(OutputIter.value());
+
     return this->d->SPDirectOutputs;
 }
 

@@ -150,12 +150,6 @@ qint64 DACImpl::runPreparedQuery(intfDACDriver* _driver,
                              const QString& _purpose,
                              quint64* _executionTime)
 {
-    if (_purpose == "[NO_LOG]"){
-        TargomanDebug(5, QString("[%2: Query: %1").arg(_sqlQuery.lastQuery(),_purpose).toUtf8().constData());
-    }else{
-        TargomanLogDebug(5, QString("[%2]: Query: %1").arg(_sqlQuery.lastQuery(),_purpose));
-    }
-
     bool Result;
 
     if(_executionTime){
@@ -175,6 +169,12 @@ qint64 DACImpl::runPreparedQuery(intfDACDriver* _driver,
                         _sqlQuery.lastError().databaseText()));
         else
             throwFormatted(_sqlQuery.lastError());
+    }
+
+    if (_purpose == "[NO_LOG]"){
+        TargomanDebug(5, QString("[%2: Query: %1").arg(_sqlQuery.executedQuery(),_purpose).toUtf8().constData());
+    }else{
+        TargomanLogDebug(5, QString("[%2]: Query: %1").arg(_sqlQuery.executedQuery(),_purpose));
     }
 
     if (_sqlQuery.isSelect())
