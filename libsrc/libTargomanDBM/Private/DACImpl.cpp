@@ -146,9 +146,9 @@ QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entity
 }
 
 qint64 DACImpl::runPreparedQuery(intfDACDriver* _driver,
-                             QSqlQuery &_sqlQuery,
-                             const QString& _purpose,
-                             quint64* _executionTime)
+                                 QSqlQuery &_sqlQuery,
+                                 const QString& _purpose,
+                                 quint64* _executionTime)
 {
     bool Result;
 
@@ -184,11 +184,11 @@ qint64 DACImpl::runPreparedQuery(intfDACDriver* _driver,
 }
 
 qint64 DACImpl::runQueryMiddleware(intfDACDriver* _driver,
-                             clsDACResult& _resultStorage,
-                             const QString &_queryStr,
-                             const QVariantList &_params,
-                             const QString& _purpose,
-                             quint64* _executionTime)
+                                   clsDACResult& _resultStorage,
+                                   const QString &_queryStr,
+                                   const QVariantList &_params,
+                                   const QString& _purpose,
+                                   quint64* _executionTime)
 {
     if(_params.isEmpty()){
         _resultStorage.d->Query.clear();
@@ -207,11 +207,11 @@ qint64 DACImpl::runQueryMiddleware(intfDACDriver* _driver,
 }
 
 qint64 DACImpl::runQueryMiddleware(intfDACDriver *_driver,
-                             clsDACResult& _resultStorage,
-                             const QString &_queryStr,
-                             const QVariantMap &_params,
-                             const QString &_purpose,
-                             quint64 *_executionTime)
+                                   clsDACResult& _resultStorage,
+                                   const QString &_queryStr,
+                                   const QVariantMap &_params,
+                                   const QString &_purpose,
+                                   quint64 *_executionTime)
 {
     if(_params.isEmpty()){
         _resultStorage.d->Query.clear();
@@ -514,8 +514,13 @@ SPParams_t DACImpl::getSPParams(intfDACDriver* _driver,
                                 const QString& _schema,
                                 const QString& _spName)
 {
-    if (this->SPCache.contains(_spName) == false)
-        this->SPCache.insert(_spName, _driver->getSPParams(_connectedQuery, _schema, _spName));
+    QReadLocker Locker(&this->SPCacheLock);
+    if (this->SPCache.contains(_spName) == false){
+        QWriteLocker(&this->SPCacheLock);
+        SPParams_t Params = _driver->getSPParams(_connectedQuery, _schema, _spName);
+        this->SPCache.insert(_spName, Params);
+        return Params;
+    }
 
     return this->SPCache.value(_spName);
 }
@@ -533,7 +538,7 @@ void DACImpl::purgeConnections()
     while(!this->ShuttingDown) {
         sleep(2); //Check every 10 Seconds
         QStringList ToBeRemoved;
-        for(QHash<QString,QDateTime>::iterator CacheIter= this->DBCAccessCache.begin();
+        for(auto CacheIter= this->DBCAccessCache.begin();
             CacheIter != this->DBCAccessCache.end();
             CacheIter++) {
             if (QDateTime::currentDateTime().secsTo(CacheIter.value()) < -60) { //Close connections which was not active for more than 60 secs
@@ -588,7 +593,7 @@ void DACImpl::throwFormatted(const QSqlError &_error)
         QStringList ErrorParts = _error.databaseText().split(':');
         quint32 ErrorCode = ErrorParts.first().toUInt();
         if(ErrorCode >= 400 || ErrorCode < 600)
-            throw exDBInternalError(ErrorCode, ErrorParts.last ());
+            throw exDBInternalError(static_cast<quint16>(ErrorCode), ErrorParts.last ());
     }
 
     throw exTargomanDBMUnableToExecuteQuery(

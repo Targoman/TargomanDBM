@@ -29,6 +29,8 @@
 #include <QSqlRecord>
 #include <QMutex>
 #include <QFuture>
+#include <QReadWriteLock>
+
 #include "intfDACSecurity.hpp"
 #include "intfDACDriver.hpp"
 #include "Definitions.h"
@@ -156,7 +158,7 @@ private:
 
     QMutex* getCurrConnectionLock(const QString& _conName);
 
-    void throwFormatted(const QSqlError &_error);
+    [[ noreturn ]] void throwFormatted(const QSqlError &_error);
 
 public slots:
     void shutdown();
@@ -167,7 +169,10 @@ private:
 
     intfDACSecurity*                SecurityProvider;
     QHash<QString, intfDACDriver*>  SQLDrivers;
+
     QHash<QString, SPParams_t>      SPCache;
+    QReadWriteLock                  SPCacheLock;
+
     QHash<QString, QDateTime>       DBCAccessCache;
     QString                         ActorUUID;
     QHash<QString, QMutex*>         RunningQueryLocks;
