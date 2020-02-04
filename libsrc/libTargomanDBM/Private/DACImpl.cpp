@@ -66,8 +66,8 @@ class clsNullDACSecurity: public intfDACSecurity
 {
 public:
     clsNullDACSecurity(){}
-    virtual ~clsNullDACSecurity(){}
-    inline bool isSPCallAllowed(const QString&/*_operatorID*/,
+    virtual ~clsNullDACSecurity();
+    inline bool isSPCallAllowed(const QString& /*_operatorID*/,
                                 const QString& /*_sp*/,
                                 const QVariantMap& /*_params*/)
     {return true;}
@@ -77,6 +77,9 @@ public:
     inline bool isQueryAllowed(const QString& /*_operatorID*/, const QString& /*_query*/, const QVariantMap& /*_params*/)
     {return true;}
 };
+
+clsNullDACSecurity::~clsNullDACSecurity()
+{;}
 
 DACImpl::DACImpl() :
     SecurityProvider(new clsNullDACSecurity),
@@ -129,11 +132,16 @@ QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entity
             }
     };
 
-    retrieveConnectionByString(QString("%1_%2_%3_%4").arg(DEFAULT_DB_NAME).arg(_domain).arg(_entityName).arg(_target));
+    if(_domain.size() && _entityName.size() && _target.size())
+        retrieveConnectionByString(QString("%1_%2_%3_%4").arg(DEFAULT_DB_NAME).arg(_domain).arg(_entityName).arg(_target));
 
-    if (DB.isValid() == false) retrieveConnectionByString(QString("%1_%2_%3").arg(DEFAULT_DB_NAME).arg(_domain).arg(_entityName), !_target.isEmpty(), _target);
-    if (DB.isValid() == false) retrieveConnectionByString(QString("%1_%2").arg(DEFAULT_DB_NAME).arg(_domain), !_entityName.isEmpty() && !_target.isEmpty(), _entityName + "_" + _target);
-    if (DB.isValid() == false) retrieveConnectionByString(QString("%1").arg(DEFAULT_DB_NAME), !_domain.isEmpty()&& !_entityName.isEmpty() && !_target.isEmpty(), _domain + "_" + _entityName + "_" + _target);
+    if (DB.isValid() == false && _domain.size() && _entityName.size())
+        retrieveConnectionByString(QString("%1_%2_%3").arg(DEFAULT_DB_NAME).arg(_domain).arg(_entityName), !_target.isEmpty(), _target);
+    if (DB.isValid() == false && _domain.size())
+        retrieveConnectionByString(QString("%1_%2").arg(DEFAULT_DB_NAME).arg(_domain), !_entityName.isEmpty() && !_target.isEmpty(), _entityName + "_" + _target);
+    if (DB.isValid() == false)
+        retrieveConnectionByString(QString("%1").arg(DEFAULT_DB_NAME), !_domain.isEmpty()&& !_entityName.isEmpty() && !_target.isEmpty(), _domain + "_" + _entityName + "_" + _target);
+
     if (DB.isValid()) {
         if (_engineType)
             *_engineType = enuDBEngines::toEnum(DB.driverName().toStdString().c_str());

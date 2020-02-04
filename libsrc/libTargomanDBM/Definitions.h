@@ -40,6 +40,8 @@ namespace DBManager {
  * \exception exTargomanDBM Base exception class for All DBmanager exceptions
  * \extends Targoman::Common::exTargomanBase
  */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBM, Targoman::Common::exTargomanBase);
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMEngineNotSupported, exTargomanDBM);
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanDBMEngineNotRegistered, exTargomanDBM);
@@ -57,6 +59,7 @@ public:
     exDBInternalError(quint16 _errorCode, const QString& _message):
         Targoman::Common::exTargomanBase(_message, _errorCode){}
 };
+#pragma clang diagnostic pop
 
 /**
  * @brief DEFAULT_DB_NAME A const name to be added to all connection names in order to specialize all ETS connections
@@ -103,8 +106,8 @@ TARGOMAN_DEFINE_ENUM(enuSQLAbstractDataType,
 class clsDAC;
 FORWARD_DECLARE_PRIVATE(clsDACResult)
 FORWARD_DECLARE_PRIVATE(clsDAC)
-namespace Private{
-class DACImpl;
+namespace Private {
+    class DACImpl;
 }
 
 /**

@@ -38,7 +38,7 @@
 #define __DBL_MIN_10_EXP__ (-307)
 #define __FINITE_MATH_ONLY__ 0
 #define __cpp_variable_templates 201304
-#define __GNUC_PATCHLEVEL__ 1
+#define __GNUC_PATCHLEVEL__ 0
 #define __FLT32_HAS_DENORM__ 1
 #define __UINT_FAST8_MAX__ 0xff
 #define __has_include(STR) __has_include__(STR)
@@ -177,7 +177,7 @@
 #define __NO_INLINE__ 1
 #define __FLT_MANT_DIG__ 24
 #define __LDBL_DECIMAL_DIG__ 21
-#define __VERSION__ "7.4.1 20190905 [gcc-7-branch revision 275407]"
+#define __VERSION__ "7.5.0"
 #define __UINT64_C(c) c ## UL
 #define __cpp_unicode_characters 200704
 #define _STDC_PREDEF_H 1
@@ -345,7 +345,7 @@
 #define __DEC128_MAX_EXP__ 6145
 #define __FLT32X_HAS_QUIET_NAN__ 1
 #define __ATOMIC_CONSUME 1
-#define __GNUC_MINOR__ 4
+#define __GNUC_MINOR__ 5
 #define __INT_FAST16_WIDTH__ 64
 #define __UINTMAX_MAX__ 0xffffffffffffffffUL
 #define __DEC32_MANT_DIG__ 7

@@ -32,6 +32,8 @@ DEFINES += TARGOMAN_SHOW_NORMAL=1
 
 DEFINES += PROJ_VERSION=$$VERSION
 
+QMAKE_CXXFLAGS+=-Wno-unknown-pragmas
+
 #+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-
 contains(QT_ARCH, x86_64){
     LibFolderPattern     = $$PREFIX/lib64
