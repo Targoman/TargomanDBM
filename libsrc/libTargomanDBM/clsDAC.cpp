@@ -300,8 +300,7 @@ QJsonDocument clsDACResult::toJson(bool _justSingle, const QMap<QString, std::fu
                 }
 
             }
-            if(_converters.contains(this->d->Query.record().fieldName(i)))
-
+            if(Value.isValid() && _converters.contains(this->d->Query.record().fieldName(i)))
                 recordObject.insert( this->d->Query.record().fieldName(i),
                                      QJsonValue::fromVariant(_converters.value(this->d->Query.record().fieldName(i))(Value)) );
             else
