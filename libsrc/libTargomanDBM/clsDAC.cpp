@@ -125,7 +125,7 @@ void clsDAC::setConnectionString(const QString& _conStr,
         DB.open();
 
     if (!DB.isOpen())
-        throw exTargomanDBMInvalidConnectionString(QString("Unable to open connection for <%1:%2:%3> using <%4:%5@%6:%7>").arg(
+        throw exTargomanDBMInvalidConnectionString(QString("Unable to open connection for <%1/%2/%3> using <%4:%5@%6:%7>").arg(
                                                        _domain,_entityName, _target).arg(
                                                        DB.userName(), QString(DB.password().size(), '*'), DB.hostName()).arg(
                                                        DB.port()));
@@ -246,7 +246,7 @@ clsDACResult::clsDACResult(const clsDACResult &_other) : d(_other.d)
 clsDACResult::~clsDACResult()
 {;}
 
-QJsonDocument clsDACResult::toJson(bool _justSingle, const QMap<QString, std::function<QVariant(const QVariant&)>> _converters)
+QJsonDocument clsDACResult::toJson(bool _justSingle, const QMap<QString, std::function<QVariant(const QVariant& _value)>> _converters)
 {
     QJsonDocument  Json;
     QJsonArray     RecordsArray;
