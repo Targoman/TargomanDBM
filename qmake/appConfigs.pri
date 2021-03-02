@@ -6,16 +6,14 @@
 #   Redistribution and use in source and binary forms are allowed under the
 #   terms of BSD License 2.0.
 ################################################################################
-include (./qmake/configs.pri)
-TEMPLATE = subdirs
-CONFIG += ordered
-# +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-#
-addSubdirs(libsrc)
-addSubdirs(test, libsrc)
-addSubdirs(unitTest, libsrc)
+include (./configs.pri)
+CONFIG_TYPE="App"
 
-OTHER_FILES += \
-    README.md \
-    INSTALL \
-    buildDependencies.sh
+!defined(APP_NAME, var): APP_NAME=$$ProjectName
 
+TEMPLATE = app
+TARGET=$$APP_NAME
+
+DESTDIR      = $$BaseBinFolder
+
+include(./common.pri)
