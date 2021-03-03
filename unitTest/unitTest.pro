@@ -13,6 +13,5 @@ HEADERS += \
 SOURCES += \
     UnitTest.cpp
 
-
 ################################################################################
-include(../qmake/unitTestConfigs.pri)
+include($$QBUILD_PATH/templates/unitTestConfigs.pri)

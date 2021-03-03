@@ -40,12 +40,13 @@ Here is a brief guide on how to build TargomanDBM
 
     * Following projects are needed and defined as submodules
             - TargomanCommon (https://github.com/Targoman/TargomanCommon.git)
+4 - git submodule update --init --recursive
 
-4 - run qmake with following options:
+5 - run qmake with following options:
     * CONFIG+=debug if you want to build a debugging version
     * PREFIX=DESIRED_LOCATION if you want to install binaries in a folder other than default paths
 
-5 - All outputs will be stored in 'out' directory at top level. subdirectories will be:
+6 - All outputs will be stored in 'out' directory at top level. subdirectories will be:
     * bin:      application and submodule oututs (if any).
     * build:    Build process object files
     * conf:     Dictionaries and static configurations off all apps and tools
