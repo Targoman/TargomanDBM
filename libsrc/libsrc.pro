@@ -32,6 +32,5 @@ SOURCES += \
 
 OTHER_FILES += \
 
-
 ################################################################################
 include($$QBUILD_PATH/templates/libConfigs.pri)
