@@ -15,4 +15,4 @@ SOURCES += \
 
 
 ################################################################################
-include(../qmake/unitTestConfigs.pri)
+include($$QBUILD_PATH/templates/unitTestConfigs.pri)

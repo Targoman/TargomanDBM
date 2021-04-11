@@ -34,4 +34,4 @@ OTHER_FILES += \
 
 
 ################################################################################
-include(../qmake/libConfigs.pri)
+include($$QBUILD_PATH/templates/libConfigs.pri)
