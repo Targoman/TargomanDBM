@@ -147,7 +147,7 @@ QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entity
             *_engineType = enuDBEngines::toEnum(DB.driverName().toStdString().c_str());
         return DB;
     }
-    throw exTargomanDBMEngineNotSupported(QString("No DB engine registerd for %1 : %2 : %3").arg(
+    throw exTargomanDBMEngineNotSupported(QString("No DB engine registerd for %1/%2/%3").arg(
                                               _domain).arg(
                                               _entityName).arg(
                                               _target));
@@ -204,7 +204,7 @@ qint64 DACImpl::runQueryMiddleware(intfDACDriver* _driver,
         _resultStorage.d->AffectedRows = this->runDirectQuery(_driver, _resultStorage.d->Query, _queryStr, _purpose, _executionTime);
     } else {
         if(!_resultStorage.d->Query.prepare (_queryStr))
-            throw exTargomanDBMUnableToPrepareQuery(_queryStr);
+            throw exTargomanDBMUnableToPrepareQuery(_queryStr + ": " + _resultStorage.d->Query.lastError().text());
 
         foreach(auto Param, _params)
             _resultStorage.d->Query.addBindValue(Param);
@@ -227,7 +227,7 @@ qint64 DACImpl::runQueryMiddleware(intfDACDriver *_driver,
         _resultStorage.d->AffectedRows = this->runDirectQuery(_driver, _resultStorage.d->Query, _queryStr, _purpose, _executionTime);
     }else {
         if(!_resultStorage.d->Query.prepare (_queryStr))
-            throw exTargomanDBMUnableToPrepareQuery(_queryStr);
+            throw exTargomanDBMUnableToPrepareQuery(_queryStr + ": " + _resultStorage.d->Query.lastError().text());
         for(auto ParamIter = _params.begin(); ParamIter != _params.end(); ++ParamIter)
             _resultStorage.d->Query.bindValue(ParamIter.key(), ParamIter.value());
         _resultStorage.d->AffectedRows = this->runPreparedQuery(_driver, _resultStorage.d->Query, _purpose, _executionTime);
@@ -524,7 +524,8 @@ SPParams_t DACImpl::getSPParams(intfDACDriver* _driver,
 {
     QReadLocker Locker(&this->SPCacheLock);
     if (this->SPCache.contains(_spName) == false){
-        QWriteLocker(&this->SPCacheLock);
+        Locker.unlock();
+        QWriteLocker WriteLocker(&this->SPCacheLock);
         SPParams_t Params = _driver->getSPParams(_connectedQuery, _schema, _spName);
         this->SPCache.insert(_spName, Params);
         return Params;
