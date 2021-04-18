@@ -272,11 +272,16 @@ QJsonDocument clsDACResult::toJson(bool _justSingle, const QMap<QString, std::fu
                *(ValueStr.toLatin1().end()-1) == '}'){
                 QJsonDocument Doc = QJsonDocument::fromJson(ValueStr.toUtf8(), &Error);
                 if(Error.error == QJsonParseError::NoError){
-                    if(_converters.contains(this->d->Query.record().fieldName(i)))
+                    //TODO IMPORTANT
+                    /*if(_converters.contains(this->d->Query.record().fieldName(i))) {
+                        auto a = Doc.object();
+                        auto b = this->d->Query.record().fieldName(i);
+                        auto c = _converters.value(b)(a);
+                        auto d = QJsonValue::fromVariant(a);
                         recordObject.insert(this->d->Query.record().fieldName(i),
                                             QJsonValue::fromVariant(_converters.value(this->d->Query.record().fieldName(i))(Doc.object()))
                                             );
-                    else
+                    }else*/
                         recordObject.insert(this->d->Query.record().fieldName(i),
                                             Doc.object()
                                             );
