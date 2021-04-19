@@ -7,7 +7,7 @@
 #   terms of BSD License 2.0.
 ################################################################################
 ProjectName="TargomanDBM"
-VERSION=1.0.0
+VERSION=1.1.0
 
 LIBS += -lTargomanCommon
 
