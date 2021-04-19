@@ -12,5 +12,6 @@ HEADERS +=
 SOURCES += \
     main.cpp
 
+QT+=concurrent
 ################################################################################
 include($$QBUILD_PATH/templates/testConfigs.pri)

@@ -104,15 +104,18 @@ QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entity
 {
     QSqlDatabase DB;
 
-    auto retrieveConnectionByString = [&DB, _clone, _returnBase](const QString& _checkStr, bool _cloneCondition = false, const QString& _clonedName = ""){
+    auto retrieveConnectionByString = [&DB, _clone, _returnBase, this](const QString& _checkStr, bool _cloneCondition = false, const QString& _clonedName = ""){
         foreach(QString Connection, QSqlDatabase::connectionNames())
             if (Connection == _checkStr) {
                 if (_clone){
                     if(_checkStr.split('_').count() == 4)
                         throw exTargomanDBM("Cloning target specified DB connections is not allowed");
-                    else if(_cloneCondition)
+
+                    if(_cloneCondition) {
                         DB = QSqlDatabase::cloneDatabase(QSqlDatabase::database(Connection, false),
                                                          Connection + "_" + _clonedName);
+                        this->Registry.insert(Connection + "_" + _clonedName, DB);
+                    }
                     break;
                 }
 
@@ -120,13 +123,19 @@ QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entity
                     DB =  QSqlDatabase::database(Connection, false);
                     break;
                 }
+
                 QString ThreadSafeConnection = _checkStr;
-                if (QSqlDatabase::contains(
-                        ThreadSafeConnection.replace(DEFAULT_DB_NAME,
-                                                     DEFAULT_DB_NAME + QString("^%1^").arg(reinterpret_cast<quint64>(QThread::currentThreadId())))))
-                    DB = QSqlDatabase::database(ThreadSafeConnection, false);
-                else
-                    DB = QSqlDatabase::cloneDatabase(QSqlDatabase::database(Connection, false), ThreadSafeConnection);
+                ThreadSafeConnection.replace(DEFAULT_DB_NAME,
+                                             DEFAULT_DB_NAME + QString("^%1^").arg(
+                                                 reinterpret_cast<quint64>(QThread::currentThreadId())));
+                QMutexLocker(&this->mxRegistry);
+                if (this->Registry.contains(ThreadSafeConnection))
+                    DB = this->Registry.value(ThreadSafeConnection);
+                else {
+                    auto Base = this->Registry.value(Connection);
+                    DB = QSqlDatabase::cloneDatabase(Base, ThreadSafeConnection);
+                    this->Registry.insert(ThreadSafeConnection, DB);
+                }
 
                 break;
             }
@@ -151,6 +160,27 @@ QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entity
                                               _domain).arg(
                                               _entityName).arg(
                                               _target));
+}
+
+void DACImpl::addDBEngine(enuDBEngines::Type _engineType, const QString &_domain, const QString &_entityName, const QString &_target)
+{
+    const QString DriverName = QString("Q%1").arg(enuDBEngines::toStr(_engineType)).toUpper();
+
+    if (!QSqlDatabase::isDriverAvailable(DriverName))
+        throw exTargomanDBMEngineNotSupported(QString("DB Engine: %1 Not supported. Try to install it.").arg(DriverName));
+
+    QString DBName = DEFAULT_DB_NAME;
+    if (!_domain.isEmpty()) {
+        DBName += "_" + _domain;
+        if (!_entityName.isEmpty()) {
+            DBName += "_" + _entityName;
+            if (!_target.isEmpty())
+                DBName += "_" + _target;
+        }
+    }
+
+    QMutexLocker(&this->mxRegistry);
+    this->Registry.insert(DBName, QSqlDatabase::addDatabase(DriverName, DBName));
 }
 
 qint64 DACImpl::runPreparedQuery(intfDACDriver* _driver,

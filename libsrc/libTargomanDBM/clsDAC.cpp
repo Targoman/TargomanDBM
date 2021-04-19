@@ -33,6 +33,9 @@
 namespace Targoman {
 namespace DBManager {
 
+namespace Private {
+    extern QMap<QString, QSqlDatabase> RegisteredDBs;
+}
 /* ----------------------------------------------- */
 clsDAC::clsDAC(const QString& _domain,
                const QString& _entityName,
@@ -61,21 +64,7 @@ void clsDAC::addDBEngine(enuDBEngines::Type _engineType,
                          const QString& _entityName,
                          const QString& _target)
 {
-    const QString DriverName = QString("Q%1").arg(enuDBEngines::toStr(_engineType)).toUpper();
-
-    if (!QSqlDatabase::isDriverAvailable(DriverName))
-        throw exTargomanDBMEngineNotSupported(QString("DB Engine: %1 Not supported. Try to install it.").arg(DriverName));
-
-    QString DBName = DEFAULT_DB_NAME;
-    if (!_domain.isEmpty()) {
-        DBName += "_" + _domain;
-        if (!_entityName.isEmpty()) {
-            DBName += "_" + _entityName;
-            if (!_target.isEmpty())
-                DBName += "_" + _target;
-        }
-    }
-    QSqlDatabase::addDatabase(DriverName, DBName);
+    return Private::DACImpl::instance().addDBEngine(_engineType, _domain, _entityName, _target);
 }
 
 /* ----------------------------------------------- */

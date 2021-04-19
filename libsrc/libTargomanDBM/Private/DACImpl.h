@@ -81,6 +81,13 @@ public:
                              bool _clone = false,
                              enuDBEngines::Type* _engineType = nullptr,
                              bool _returnBase = false);
+
+    void addDBEngine(enuDBEngines::Type _engineType,
+                     const QString& _domain,
+                     const QString& _entityName,
+                     const QString& _target
+                     );
+
     qint64 runPreparedQuery(intfDACDriver *_driver, QSqlQuery& _sqlQuery, const QString &_purpose, quint64 *_executionTime = nullptr);
 
     clsDACResult runQuery(clsDAC& _dac,
@@ -158,7 +165,7 @@ private:
 
     QMutex* getCurrConnectionLock(const QString& _conName);
 
-    [[ noreturn ]] void throwFormatted(const QSqlError &_error);
+    void throwFormatted(const QSqlError &_error);
 
 public slots:
     void shutdown();
@@ -180,6 +187,8 @@ private:
     QFuture<void>                   DBCChecker;
     Common::tmplExpirableCache<QHash, QString, clsDACResult> Cache;
     bool                            ShuttingDown;
+    QMutex                          mxRegistry;
+    QHash<QString, QSqlDatabase>    Registry;
 };
 
 }
