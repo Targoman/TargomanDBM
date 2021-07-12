@@ -20,70 +20,48 @@
  * @author S. Mohammad M. Ziabary <ziabary@targoman.com>
  */
 
-
-#include <iostream>
-#include <unistd.h>
-#include <QtDebug>
-#include <QCoreApplication>
-#include <QJsonObject>
-#include <QtConcurrent/QtConcurrent>
-#include "libTargomanDBM/clsDAC.h"
-#include "libTargomanCommon/CmdIO.h"
+#include <QtTest>
+#include "testDAC.hpp"
 #include "libTargomanCommon/Logger.h"
+#include "libTargomanDBM/clsDAC.h"
 
 using namespace Targoman::DBManager;
+
 int main(int argc, char *argv[])
 {
     QCoreApplication App(argc, argv);
     Targoman::Common::Logger::instance().setVisible(true);
-    Q_UNUSED(argc); Q_UNUSED(argv);
-    try{
-        clsDAC::addDBEngine (enuDBEngines::MySQL);
-        clsDAC::setConnectionString ("HOST=192.168.0.240;PORT=3306;USER=root;PASSWORD=targoman1234;SCHEMA=mysql");
 
-        clsDAC DAC;
-        qDebug()<<DAC.execQuery("", "SELECT * FROM user")
-                  .toJson(false).toJson().constData();
-        qDebug()<<"***************************";
-        qDebug()<<DAC.execQuery("", "SELECT * FROM user WHERE user.User=?",{{"root"}})
-                  .toJson(false).toJson().constData();
-        qDebug()<<"***************************";
-        qDebug()<<DAC.execQuery("", "SELECT * FROM user WHERE user.User=:user",QVariantMap({{":user","root"}}))
-                  .toJson(false).toJson().constData();
-/*        qDebug()<<"***************************"<<"Test.spNoOutput";
-        qDebug()<<DAC.callSP ("","Test.spNoOutput", {{"Param1","1"}}).toJson(false).toJson().constData();
-        qDebug()<<"***************************"<<"Test.spSelectNoInput";
-        qDebug()<<DAC.callSP ("","Test.spSelectNoInput").toJson(false).toJson().constData();
-        qDebug()<<"***************************"<<"Test.spJustDirectOut";
-        qDebug()<<DAC.callSP ("","Test.spJustDirectOut").toJson(false).toJson().constData();
-        qDebug()<<"***************************"<<"Test.spFullInOut";
-        qDebug()<<DAC.callSP ("","Test.spFullInOut", {{"Param1","1"}, {"Param3", " test"}}).toJson(false).toJson().constData();
-        qDebug()<<"***************************"<<"Test.spFullInOut";
-        qDebug()<<DAC.callSP ("","Test.spFullInOut", {{"Param1","1"}, {"Param2", " test"}}).toJson(false).toJson().constData();
-        qDebug()<<"***************************"<<"Test.spFullInOut";
-        qDebug()<<DAC.callSP ("","AAA.sp_login", {
-                                  {"iLogin", "09126174250"},
-                                  {"iPass", "da1234a56dac001ba01e1cc61aed0ba7"},
-                                  {"iSalt", "MySALT"},
-                                  {"iInfo", QJsonObject()}
-                              }).toJson(false).toJson().constData();
-                              */
+    ///TODO: when I comment these 3 lines, execQueryCacheable.toJson corrupts DACResult.WasSP
+    qDebug() << "--------------------------------------------------";
+    qDebug() << "-- test DAC --------------------------------------";
+    qDebug() << "--------------------------------------------------";
 
-        auto future = QtConcurrent::run([=](){
-           clsDAC DAC("ssss");
-           qDebug()<<DAC.execQuery("", "SELECT * FROM user")
-                     .toJson(false).toJson().constData();
+    clsDAC::addDBEngine (enuDBEngines::MySQL);
+//        clsDAC::setConnectionString ("HOST=192.168.0.240;PORT=3306;USER=root;PASSWORD=targoman1234;SCHEMA=mysql");
+    clsDAC::setConnectionString("HOST=" TARGOMAN_M2STR(UNITTEST_DB_HOST) ";"
+                                "PORT=" TARGOMAN_M2STR(UNITTEST_DB_PORT) ";"
+                                "USER=" TARGOMAN_M2STR(UNITTEST_DB_USER) ";"
+                                "PASSWORD=" TARGOMAN_M2STR(UNITTEST_DB_PASSWORD) ";"
+                                "SCHEMA=" TARGOMAN_M2STR(UNITTEST_DB_SCHEMA) ";");
 
-        });
-
-        future.waitForFinished();
-        //DAC.shutdown();
-   }catch(std::exception &e){
-        TargomanError(e.what());
-        QCoreApplication::exit(1);
+    bool BreakOnFirstFail = true;
+    int FailedTests = 0;
+    try {
+        if (BreakOnFirstFail && !FailedTests) FailedTests += QTest::qExec(new testDAC, argc, argv);
+//        if (BreakOnFirstFail && !FailedTests) FailedTests += QTest::qExec(new test???, argc, argv);
+    } catch(std::exception &e) {
+        qDebug()<<e.what();
+    }
+    if (FailedTests > 0) {
+        qDebug() << "total number of failed tests: " << FailedTests;
+    } else {
+        qDebug() << "all tests passed :)";
     }
 
-    return 0;
+    clsDAC::shutdown();
+
+    return FailedTests;
 }
 
 
