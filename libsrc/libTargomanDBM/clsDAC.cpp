@@ -42,10 +42,10 @@ clsDAC::clsDAC(const QString& _domain,
                const QString& _target,
                bool _clone) :
     pPrivate(new Private::clsDACPrivate(Private::DACImpl::instance().getDBEngine(_domain, _entityName, _target, _clone)))
-{}
+{ ; }
 
 clsDAC::~clsDAC()
-{}
+{ ; }
 
 /* ----------------------------------------------- */
 QSqlDatabase clsDAC::getDBEngine(const QString& _domain,
@@ -216,24 +216,24 @@ void clsDAC::shutdown()
 Private::clsDACPrivate::clsDACPrivate(const QSqlDatabase& _db) :
     DB(_db),
     Driver(Private::DACImpl::instance().driver(_db.driverName()))
-{}
+{ ; }
 Private::clsDACPrivate::~clsDACPrivate()
-{}
+{ ; }
 /**********************************************************************************************************************/
 Private::clsDACResultPrivate::~clsDACResultPrivate()
-{}
+{ ; }
 /**********************************************************************************************************************/
 clsDACResult::clsDACResult() : d(new Private::clsDACResultPrivate(QSqlDatabase()))
-{}
+{ ; }
 
 clsDACResult::clsDACResult(const QSqlDatabase &_dbc) : d(new Private::clsDACResultPrivate(_dbc))
-{}
+{ ; }
 
 clsDACResult::clsDACResult(const clsDACResult &_other) : d(_other.d)
-{}
+{ ; }
 
 clsDACResult::~clsDACResult()
-{}
+{ ; }
 
 QJsonDocument clsDACResult::toJson(bool _justSingle, const QMap<QString, std::function<QVariant(const QVariant& _value)>> _converters)
 {

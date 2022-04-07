@@ -34,7 +34,7 @@ namespace Private {
 class intfDACSecurity
 {
 public:
-    virtual ~intfDACSecurity(){}
+    virtual ~intfDACSecurity(){ ; }
     virtual bool isSPCallAllowed(const QString& _operatorID, const QString& _sp, const QVariantMap& _params) = 0;
     virtual bool isQueryAllowed(const QString& _operatorID, const QString& _query, const QVariantList& _params) = 0;
     virtual bool isQueryAllowed(const QString& _operatorID, const QString& _query, const QVariantMap& _params) = 0;

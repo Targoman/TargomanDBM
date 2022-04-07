@@ -34,7 +34,7 @@ namespace Drivers {
 class clsDACDriver_SQLite : public intfDACDriver
 {
 public:
-    clsDACDriver_SQLite() {}
+    clsDACDriver_SQLite() { ; }
 
     QStringList bindSPQuery(const QString& _spName,
                             const SPParams_t &_spParams,

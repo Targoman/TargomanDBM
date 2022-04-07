@@ -62,7 +62,7 @@ public:
         WasSP(false),
         WasCached(false),
         IsValid(false)
-    {}
+    { ; }
 
 //    clsDACResultPrivate(const clsDACResultPrivate &_other)
 //        : QSharedData(_other),
@@ -73,7 +73,7 @@ public:
 //          WasSP(_other.WasSP),
 //          WasCached(_other.WasCached),
 //          IsValid(_other.IsValid)
-//    {}
+//    { ; }
 
     ~clsDACResultPrivate();
 
