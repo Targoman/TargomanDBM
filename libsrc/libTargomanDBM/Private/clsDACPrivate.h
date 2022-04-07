@@ -18,6 +18,7 @@
  ******************************************************************************/
 /**
  * @author S. Mohammad M. Ziabary <ziabary@targoman.com>
+ * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
 #ifndef TARGOMAN_DBMANAGER_PRIVATE_CLSDACPRIVATE_H
@@ -35,14 +36,11 @@
 
 namespace Targoman {
 
-namespace AAA{
-namespace Private{
+namespace AAA::Private {
 class clsAuthorization;
 }
-}
 
-namespace DBManager {
-namespace Private{
+namespace DBManager::Private {
 
 class clsDACPrivate
 {
@@ -55,23 +53,41 @@ public:
     intfDACDriver* Driver;
 };
 
-class clsDACResultPrivate : public QSharedData{
+class clsDACResultPrivate : public QSharedData {
 public:
-    explicit clsDACResultPrivate(const QSqlDatabase& _dbc) : Query(_dbc), Database(_dbc), WasSP(false) { ; }
-    clsDACResultPrivate(const clsDACResultPrivate &other)
-        : QSharedData(other), Query(other.Query), SPDirectOutputs(other.SPDirectOutputs ) { ; }
+    explicit clsDACResultPrivate(const QSqlDatabase& _dbc) :
+        Query(_dbc),
+        Database(_dbc),
+        AffectedRows(0),
+        WasSP(false),
+        WasCached(false),
+        IsValid(false)
+    { ; }
+
+//    clsDACResultPrivate(const clsDACResultPrivate &_other)
+//        : QSharedData(_other),
+//          Query(_other.Query),
+//          Database(_other.Database),
+//          SPDirectOutputs(_other.SPDirectOutputs),
+//          AffectedRows(_other.AffectedRows),
+//          WasSP(_other.WasSP),
+//          WasCached(_other.WasCached),
+//          IsValid(_other.IsValid)
+//    { ; }
+
     ~clsDACResultPrivate();
 
 public:
-    QSqlQuery     Query;
-    QSqlDatabase  Database;
-    QVariantMap   SPDirectOutputs;
-    bool          WasSP;
-    qint64        AffectedRows;
+    QSqlQuery       Query;
+    QSqlDatabase    Database;
+    QVariantMap     SPDirectOutputs;
+    qint32          AffectedRows;
+    bool            WasSP;
+    bool            WasCached;
+    bool            IsValid;
 };
 
 }
-}
-}
+} //namespace DBManager::Private
 
 #endif // TARGOMAN_DBMANAGER_PRIVATE_CLSDACPRIVATE_H

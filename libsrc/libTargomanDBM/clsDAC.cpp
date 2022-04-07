@@ -18,6 +18,7 @@
  ******************************************************************************/
 /**
  * @author S. Mohammad M. Ziabary <ziabary@targoman.com>
+ * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
 #include <QThread>
@@ -30,8 +31,7 @@
 #include "Private/clsDACPrivate.h"
 #include "Private/DACImpl.h"
 
-namespace Targoman {
-namespace DBManager {
+namespace Targoman::DBManager {
 
 namespace Private {
     extern QMap<QString, QSqlDatabase> RegisteredDBs;
@@ -218,7 +218,7 @@ Private::clsDACPrivate::clsDACPrivate(const QSqlDatabase& _db) :
     Driver(Private::DACImpl::instance().driver(_db.driverName()))
 { ; }
 Private::clsDACPrivate::~clsDACPrivate()
-{;}
+{ ; }
 /**********************************************************************************************************************/
 Private::clsDACResultPrivate::~clsDACResultPrivate()
 { ; }
@@ -233,7 +233,7 @@ clsDACResult::clsDACResult(const clsDACResult &_other) : d(_other.d)
 { ; }
 
 clsDACResult::~clsDACResult()
-{;}
+{ ; }
 
 QJsonDocument clsDACResult::toJson(bool _justSingle, const QMap<QString, std::function<QVariant(const QVariant& _value)>> _converters)
 {
@@ -343,7 +343,7 @@ bool clsDACResult::isSelect()
 
 bool clsDACResult::isValid()
 {
-    return this->d->Query.isValid();
+    return this->d->IsValid; //Query.isValid();
 }
 
 bool clsDACResult::last()
@@ -446,5 +446,9 @@ QVariantMap clsDACResult::spDirectOutputs(const QMap<QString, std::function<QVar
     return this->d->SPDirectOutputs;
 }
 
+bool clsDACResult::wasCached() const {
+    return this->d->WasCached;
+
 }
-}
+
+} //namespace Targoman::DBManager

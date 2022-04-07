@@ -18,6 +18,7 @@
  ******************************************************************************/
 /**
  * @author S. Mohammad M. Ziabary <ziabary@targoman.com>
+ * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
 #include <QStringList>
@@ -41,9 +42,7 @@
 
 #include "libTargomanCommon/Logger.h"
 
-namespace Targoman {
-namespace DBManager {
-namespace Private{
+namespace Targoman::DBManager::Private {
 
 /*####################################*/
 #define clsDACPrivate_OpenDB(DBC) \
@@ -79,7 +78,7 @@ public:
 };
 
 clsNullDACSecurity::~clsNullDACSecurity()
-{;}
+{ ; }
 
 DACImpl::DACImpl() :
     SecurityProvider(new clsNullDACSecurity),
@@ -183,23 +182,25 @@ void DACImpl::addDBEngine(enuDBEngines::Type _engineType, const QString &_domain
     this->Registry.insert(DBName, QSqlDatabase::addDatabase(DriverName, DBName));
 }
 
-qint64 DACImpl::runPreparedQuery(intfDACDriver* _driver,
-                                 QSqlQuery &_sqlQuery,
-                                 const QString& _purpose,
-                                 quint64* _executionTime)
+qint64 DACImpl::runPreparedQuery(
+        intfDACDriver* _driver,
+        QSqlQuery &_sqlQuery,
+        const QString& _purpose,
+        quint64* _executionTime
+    )
 {
     bool Result;
 
-    if(_executionTime){
+    if (_executionTime) {
         QTime Timer;
         Timer.start();
         Result = _sqlQuery.exec();
         *_executionTime = static_cast<quint64>(Timer.elapsed());
-    }else
+    } else
         Result = _sqlQuery.exec();
 
-    if(!Result){
-        if(_driver->wasConnectionLost(_sqlQuery.lastError()))
+    if (!Result) {
+        if (_driver->wasConnectionLost(_sqlQuery.lastError()))
             throw exTargomanDBMConnectionLost(
                     QString(
                         "Connection lost when executing query: [%1] %2").arg(
@@ -209,10 +210,10 @@ qint64 DACImpl::runPreparedQuery(intfDACDriver* _driver,
             throwFormatted(_sqlQuery.lastError());
     }
 
-    if (_purpose == "[NO_LOG]"){
-        TargomanDebug(5, QString("[%2: Query: %1").arg(_sqlQuery.executedQuery(),_purpose).toUtf8().constData());
-    }else{
-        TargomanLogDebug(5, QString("[%2]: Query: %1").arg(_sqlQuery.executedQuery(),_purpose));
+    if (_purpose == "[NO_LOG]") {
+        TargomanDebug(5, QString("[%2: Query: %1").arg(_sqlQuery.executedQuery(), _purpose).toUtf8().constData());
+    } else {
+        TargomanLogDebug(5, QString("[%2]: Query: %1").arg(_sqlQuery.executedQuery(), _purpose));
     }
 
     if (_sqlQuery.isSelect())
@@ -221,26 +222,30 @@ qint64 DACImpl::runPreparedQuery(intfDACDriver* _driver,
         return _sqlQuery.numRowsAffected();
 }
 
-qint64 DACImpl::runQueryMiddleware(intfDACDriver* _driver,
-                                   clsDACResult& _resultStorage,
-                                   const QString &_queryStr,
-                                   const QVariantList &_params,
-                                   const QString& _purpose,
-                                   quint64* _executionTime)
+qint64 DACImpl::runQueryMiddleware(
+        intfDACDriver* _driver,
+        clsDACResult& _resultStorage,
+        const QString &_queryStr,
+        const QVariantList &_params,
+        const QString& _purpose,
+        quint64* _executionTime
+    )
 {
-    if(_params.isEmpty()){
+    if (_params.isEmpty()) {
         _resultStorage.d->Query.clear();
         _resultStorage.d->Query = QSqlQuery(_resultStorage.d->Database);
         _resultStorage.d->AffectedRows = this->runDirectQuery(_driver, _resultStorage.d->Query, _queryStr, _purpose, _executionTime);
     } else {
-        if(!_resultStorage.d->Query.prepare (_queryStr))
+        if (!_resultStorage.d->Query.prepare(_queryStr))
             throw exTargomanDBMUnableToPrepareQuery(_queryStr + ": " + _resultStorage.d->Query.lastError().text());
 
-        foreach(auto Param, _params)
+        foreach (auto Param, _params)
             _resultStorage.d->Query.addBindValue(Param);
+
         _resultStorage.d->AffectedRows = this->runPreparedQuery(_driver, _resultStorage.d->Query, _purpose, _executionTime);
     }
 
+    _resultStorage.d->IsValid = true;
     return _resultStorage.d->AffectedRows;
 }
 
@@ -255,21 +260,23 @@ qint64 DACImpl::runQueryMiddleware(intfDACDriver *_driver,
         _resultStorage.d->Query.clear();
         _resultStorage.d->Query = QSqlQuery(_resultStorage.d->Database);
         _resultStorage.d->AffectedRows = this->runDirectQuery(_driver, _resultStorage.d->Query, _queryStr, _purpose, _executionTime);
-    }else {
+    } else {
         if(!_resultStorage.d->Query.prepare (_queryStr))
             throw exTargomanDBMUnableToPrepareQuery(_queryStr + ": " + _resultStorage.d->Query.lastError().text());
         for(auto ParamIter = _params.begin(); ParamIter != _params.end(); ++ParamIter)
             _resultStorage.d->Query.bindValue(ParamIter.key(), ParamIter.value());
         _resultStorage.d->AffectedRows = this->runPreparedQuery(_driver, _resultStorage.d->Query, _purpose, _executionTime);
     }
+
+    _resultStorage.d->IsValid = true;
     return _resultStorage.d->AffectedRows;
 }
 
 qint64 DACImpl::runDirectQuery(intfDACDriver* _driver, QSqlQuery &_sqlQuery, const QString& _queryString, const QString& _purpose, quint64* _executionTime)
 {
-    if (_purpose == "[NO_LOG]"){
+    if (_purpose == "[NO_LOG]") {
         TargomanDebug(5, QString("[%2: Query: %1").arg(_queryString,_purpose).toUtf8().constData());
-    }else{
+    } else {
         TargomanLogDebug(5, QString("[%2]: Query: %1").arg(_queryString,_purpose));
     }
 
@@ -280,7 +287,7 @@ qint64 DACImpl::runDirectQuery(intfDACDriver* _driver, QSqlQuery &_sqlQuery, con
         Timer.start();
         Result = _sqlQuery.exec(_queryString);
         *_executionTime = static_cast<quint64>(Timer.elapsed());
-    }else
+    } else
         Result = _sqlQuery.exec(_queryString);
 
 
@@ -301,38 +308,45 @@ qint64 DACImpl::runDirectQuery(intfDACDriver* _driver, QSqlQuery &_sqlQuery, con
         return _sqlQuery.numRowsAffected();
 }
 
-clsDACResult DACImpl::runQuery(clsDAC &_dac,
-                               const QString &_queryStr,
-                               const QVariantList &_params,
-                               const QString& _purpose,
-                               quint64* _executionTime)
+clsDACResult DACImpl::runQuery(
+        clsDAC &_dac,
+        const QString &_queryStr,
+        const QVariantList &_params,
+        const QString& _purpose,
+        quint64* _executionTime
+    )
 {
     QSqlDatabase DBC = this->getThreadDBC(_dac.pPrivate->DB);
     QMutexLocker QLocker(this->getCurrConnectionLock(DBC.connectionName()));
 
-    quint8 Retries=0;
+    quint8 Retries =0;
     QTime Timer;
-    if(_executionTime)
+
+    if (_executionTime)
         Timer.start();
 
     clsDACResult Result(DBC);
 
     while (true) {
-        try{
+        try {
             clsDACPrivate_OpenDB(DBC);
 
             this->runQueryMiddleware(_dac.pPrivate->Driver, Result, _queryStr, _params, _purpose);
-            if(_executionTime)
+
+            if (_executionTime)
                 *_executionTime = static_cast<quint64>(Timer.elapsed());
+
             return Result;
-        }catch(exTargomanDBMConnectionLost){
+        } catch(exTargomanDBMConnectionLost) {
             if (Retries++ > 2)
                 throw;
-            if (_purpose == "[NO_LOG]"){
+
+            if (_purpose == "[NO_LOG]") {
                 TargomanDebug(5, QString("%2: Retried QueryString: %1").arg(_queryStr,_purpose).toUtf8().constData())
-            }else{
+            } else {
                 TargomanLogDebug(5, QString("%2: Retried QueryString: %1").arg(_queryStr,_purpose))
             }
+
             DBC.close();
             usleep(50000);
         }
@@ -365,9 +379,9 @@ clsDACResult DACImpl::runQuery(clsDAC &_dac,
         }catch(exTargomanDBMConnectionLost){
             if (Retries++ > 2)
                 throw;
-            if (_purpose == "[NO_LOG]"){
+            if (_purpose == "[NO_LOG]") {
                 TargomanDebug(5, QString("%2: Retried QueryString: %1").arg(_queryStr,_purpose).toUtf8().constData())
-            }else{
+            } else {
                 TargomanLogDebug(5, QString("%2: Retried QueryString: %1").arg(_queryStr,_purpose))
             }
             DBC.close();
@@ -389,10 +403,18 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
     QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
-    if(DACResult.isValid() == false){
-        DACResult = this->runQuery(_dac, _queryStr, _params, _purpose, _executionTime);
-        this->Cache.insert(_ttl, CacheKey, DACResult);
+
+    if (DACResult.isValid()) {
+        //reset cached dataset
+        if (DACResult.d->Query.isActive() && DACResult.d->Query.isSelect()) {
+            DACResult.d->WasCached = true;
+            DACResult.d->Query.seek(-1);
+            return DACResult;
+        }
     }
+
+    DACResult = this->runQuery(_dac, _queryStr, _params, _purpose, _executionTime);
+    this->Cache.insert(_ttl, CacheKey, DACResult);
 
     return DACResult;
 }
@@ -410,10 +432,18 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
     QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
-    if(DACResult.isValid() == false){
-        DACResult = this->runQuery(_dac, _queryStr, _params, _purpose, _executionTime);
-        this->Cache.insert(_ttl, CacheKey, DACResult);
+
+    if (DACResult.isValid()) {
+        //reset cached dataset
+        if (DACResult.d->Query.isActive() && DACResult.d->Query.isSelect()) {
+            DACResult.d->WasCached = true;
+            DACResult.d->Query.seek(-1);
+            return DACResult;
+        }
     }
+
+    DACResult = this->runQuery(_dac, _queryStr, _params, _purpose, _executionTime);
+    this->Cache.insert(_ttl, CacheKey, DACResult);
 
     return DACResult;
 }
@@ -468,7 +498,7 @@ clsDACResult DACImpl::callSP(clsDAC &_dac,
                         if (_purpose == "[NO_LOG]"){
                             TargomanDebug(6,QString("\t%1 : <%2>").arg(QString(BoundingVars.at(i)).remove(0, DEFAULT_OUTVAR_PATTERN.size()),
                                                                        BoundingResult.value(i).toString()).toUtf8().constData())
-                        }else{
+                        } else {
                             TargomanLogDebug(6,QString("\t%1 : <%2>").arg(QString(BoundingVars.at(i)).remove(0, DEFAULT_OUTVAR_PATTERN.size()),
                                                                           BoundingResult.value(i).toString()))
                         }
@@ -484,7 +514,7 @@ clsDACResult DACImpl::callSP(clsDAC &_dac,
                 throw;
             if (_purpose == "[NO_LOG]"){
                 TargomanDebug(5, QString("%2: Retried CallSP: %1").arg(_spName,_purpose).toUtf8().constData())
-            }else{
+            } else {
                 TargomanLogDebug(5, QString("%2: Retried CallSP: %1").arg(_spName,_purpose))
             }
             DBC.close();
@@ -507,10 +537,18 @@ clsDACResult DACImpl::callSPCacheable(quint32 _ttl,
     QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_spName, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
-    if(DACResult.isValid() == false){
-        DACResult = this->callSP(_dac, _spName, _spArgs, _purpose, _executionTime);
-        this->Cache.insert(_ttl, CacheKey, DACResult);
+
+    if (DACResult.isValid()) {
+        //reset cached dataset
+        if (DACResult.d->Query.isActive() && DACResult.d->Query.isSelect()) {
+            DACResult.d->WasCached = true;
+            DACResult.d->Query.seek(-1);
+            return DACResult;
+        }
     }
+
+    DACResult = this->callSP(_dac, _spName, _spArgs, _purpose, _executionTime);
+    this->Cache.insert(_ttl, CacheKey, DACResult);
 
     return DACResult;
 }
@@ -654,6 +692,4 @@ void DACImpl::shutdown()
     }
 }
 
-}
-}
-}
+} //namespace Targoman::DBManager::Private

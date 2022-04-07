@@ -79,7 +79,7 @@ clsDACDriver_MySQL::clsDACDriver_MySQL()
 }
 
 clsDACDriver_MySQL::~clsDACDriver_MySQL()
-{;}
+{ ; }
 
 QStringList clsDACDriver_MySQL::bindSPQuery(const QString& _spName,
                                             const SPParams_t& _spParams,
