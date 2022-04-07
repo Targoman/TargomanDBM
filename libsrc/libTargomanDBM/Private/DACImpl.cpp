@@ -78,7 +78,7 @@ public:
 };
 
 clsNullDACSecurity::~clsNullDACSecurity()
-{}
+{ ; }
 
 DACImpl::DACImpl() :
     SecurityProvider(new clsNullDACSecurity),
