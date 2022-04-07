@@ -411,8 +411,7 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
 
     if (DACResult.isValid()) {
         //reset cached dataset
-        if (DACResult.d->Query.isActive() && DACResult.d->Query.isSelect())
-        {
+        if (DACResult.d->Query.isActive() && DACResult.d->Query.isSelect()) {
             DACResult.d->WasCached = true;
             DACResult.d->Query.seek(-1);
             return DACResult;
@@ -441,8 +440,7 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
 
     if (DACResult.isValid()) {
         //reset cached dataset
-        if (DACResult.d->Query.isActive() && DACResult.d->Query.isSelect())
-        {
+        if (DACResult.d->Query.isActive() && DACResult.d->Query.isSelect()) {
             DACResult.d->WasCached = true;
             DACResult.d->Query.seek(-1);
             return DACResult;
@@ -547,8 +545,7 @@ clsDACResult DACImpl::callSPCacheable(quint32 _ttl,
 
     if (DACResult.isValid()) {
         //reset cached dataset
-        if (DACResult.d->Query.isActive() && DACResult.d->Query.isSelect())
-        {
+        if (DACResult.d->Query.isActive() && DACResult.d->Query.isSelect()) {
             DACResult.d->WasCached = true;
             DACResult.d->Query.seek(-1);
             return DACResult;
