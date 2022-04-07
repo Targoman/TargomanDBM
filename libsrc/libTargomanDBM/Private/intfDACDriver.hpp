@@ -47,7 +47,7 @@ struct stuSPParam
     enuSQLAbstractDataType::Type    VarType;
     QVariant                        Value;
 
-    stuSPParam() { ; }
+    stuSPParam() {}
 
     stuSPParam(enuSPParamDir::Type _dir,
                const QString& _name,
@@ -57,7 +57,7 @@ struct stuSPParam
         Name(_name),
         VarType(_varType),
         Value(_value)
-    { ; }
+    {}
 };
 
 typedef  QList<stuSPParam>  SPParams_t;
@@ -65,7 +65,7 @@ typedef  QList<stuSPParam>  SPParams_t;
 class intfDACDriver
 {
 public:
-    virtual ~intfDACDriver(){ ; }
+    virtual ~intfDACDriver(){}
     virtual enuSQLAbstractDataType::Type   abstractDataType(const QString& _typeStr) = 0;
 
     virtual QStringList bindSPQuery(const QString& _spName,

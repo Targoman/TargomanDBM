@@ -144,6 +144,7 @@ public:
     QVariant value(int _index) const;
     QVariant value(const QString& _colName) const;
     int colIndex(const QString& _colName);
+    bool wasCached() const;
 
     QVariantMap spDirectOutputs(const QMap<QString, std::function<QVariant(const QVariant& _value)>> _converters = {});
     QJsonDocument toJson(bool _justSingle, const QMap<QString, std::function<QVariant(const QVariant& _value)>> _converters = {});
