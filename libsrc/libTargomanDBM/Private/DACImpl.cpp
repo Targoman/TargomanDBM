@@ -97,7 +97,7 @@ DACImpl::DACImpl() :
 }
 
 DACImpl::~DACImpl()
-{}
+{ ; }
 
 QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entityName, const QString &_target, bool _clone, enuDBEngines::Type *_engineType, bool _returnBase)
 {
@@ -337,8 +337,7 @@ clsDACResult DACImpl::runQuery(
                 *_executionTime = static_cast<quint64>(Timer.elapsed());
 
             return Result;
-        }
-        catch(exTargomanDBMConnectionLost) {
+        } catch(exTargomanDBMConnectionLost) {
             if (Retries++ > 2)
                 throw;
 

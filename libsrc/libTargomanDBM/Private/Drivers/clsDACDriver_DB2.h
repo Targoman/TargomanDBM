@@ -34,7 +34,7 @@ namespace Drivers {
 class clsDACDriver_DB2 : public intfDACDriver
 {
 public:
-    clsDACDriver_DB2() {}
+    clsDACDriver_DB2() { ; }
 
     QStringList bindSPQuery(const QString& _spName,
                             const SPParams_t &_spParams,

@@ -34,7 +34,7 @@ namespace Drivers {
 class clsDACDriver_Oracle : public intfDACDriver
 {
 public:
-    clsDACDriver_Oracle() {}
+    clsDACDriver_Oracle() { ; }
 
     QStringList bindSPQuery(const QString& _spName,
                             const SPParams_t &_spParams,
