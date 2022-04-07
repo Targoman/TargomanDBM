@@ -343,7 +343,7 @@ bool clsDACResult::isSelect()
 
 bool clsDACResult::isValid()
 {
-    return this->d->Query.isValid();
+    return this->d->IsValid; //Query.isValid();
 }
 
 bool clsDACResult::last()
@@ -444,6 +444,11 @@ QVariantMap clsDACResult::spDirectOutputs(const QMap<QString, std::function<QVar
                 OutputIter.value() =_converters.value(OutputIter.key())(OutputIter.value());
 
     return this->d->SPDirectOutputs;
+}
+
+bool clsDACResult::wasCached() const {
+    return this->d->WasCached;
+
 }
 
 }

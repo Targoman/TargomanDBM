@@ -228,19 +228,21 @@ qint64 DACImpl::runQueryMiddleware(intfDACDriver* _driver,
                                    const QString& _purpose,
                                    quint64* _executionTime)
 {
-    if(_params.isEmpty()){
+    if (_params.isEmpty()) {
         _resultStorage.d->Query.clear();
         _resultStorage.d->Query = QSqlQuery(_resultStorage.d->Database);
         _resultStorage.d->AffectedRows = this->runDirectQuery(_driver, _resultStorage.d->Query, _queryStr, _purpose, _executionTime);
     } else {
-        if(!_resultStorage.d->Query.prepare (_queryStr))
+        if (!_resultStorage.d->Query.prepare (_queryStr))
             throw exTargomanDBMUnableToPrepareQuery(_queryStr + ": " + _resultStorage.d->Query.lastError().text());
 
         foreach(auto Param, _params)
             _resultStorage.d->Query.addBindValue(Param);
+
         _resultStorage.d->AffectedRows = this->runPreparedQuery(_driver, _resultStorage.d->Query, _purpose, _executionTime);
     }
 
+    _resultStorage.d->IsValid = true;
     return _resultStorage.d->AffectedRows;
 }
 
@@ -262,6 +264,8 @@ qint64 DACImpl::runQueryMiddleware(intfDACDriver *_driver,
             _resultStorage.d->Query.bindValue(ParamIter.key(), ParamIter.value());
         _resultStorage.d->AffectedRows = this->runPreparedQuery(_driver, _resultStorage.d->Query, _purpose, _executionTime);
     }
+
+    _resultStorage.d->IsValid = true;
     return _resultStorage.d->AffectedRows;
 }
 
@@ -389,10 +393,14 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
     QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
-    if(DACResult.isValid() == false){
-        DACResult = this->runQuery(_dac, _queryStr, _params, _purpose, _executionTime);
-        this->Cache.insert(_ttl, CacheKey, DACResult);
+
+    if (DACResult.isValid() == false) {
+        clsDACResult r2 = this->runQuery(_dac, _queryStr, _params, _purpose, _executionTime);
+        this->Cache.insert(_ttl, CacheKey, r2);
+        return r2;
     }
+    else
+        DACResult.d->WasCached = true;
 
     return DACResult;
 }
@@ -410,10 +418,13 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
     QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
-    if(DACResult.isValid() == false){
+
+    if (DACResult.isValid() == false) {
         DACResult = this->runQuery(_dac, _queryStr, _params, _purpose, _executionTime);
         this->Cache.insert(_ttl, CacheKey, DACResult);
     }
+    else
+        DACResult.d->WasCached = true;
 
     return DACResult;
 }
@@ -507,10 +518,13 @@ clsDACResult DACImpl::callSPCacheable(quint32 _ttl,
     QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_spName, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
-    if(DACResult.isValid() == false){
+
+    if (DACResult.isValid() == false) {
         DACResult = this->callSP(_dac, _spName, _spArgs, _purpose, _executionTime);
         this->Cache.insert(_ttl, CacheKey, DACResult);
     }
+    else
+        DACResult.d->WasCached = true;
 
     return DACResult;
 }
