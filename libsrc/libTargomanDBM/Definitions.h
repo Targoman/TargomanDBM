@@ -128,7 +128,8 @@ public:
     bool first();
     bool isNull(int _field);
     bool isSelect();
-    bool isValid();
+    bool isValid() const;
+    bool isValidQuery() const;
     bool last();
     QSqlError lastError() const;
     QVariant lastInsertId() const;

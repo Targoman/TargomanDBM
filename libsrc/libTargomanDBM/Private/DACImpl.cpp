@@ -398,13 +398,19 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
                                         quint64 *_executionTime)
 {
     QStringList Args;
+
     foreach(auto Item, _params)
         Args.append(Item.toString());
-    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
+
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)")
+                                                .arg(_queryStr, Args.join(","))
+                                                .toUtf8(),
+                                                QCryptographicHash::Md4)
+                       .toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
 
-    if (DACResult.isValid()) {
+    if (DACResult.isValidQuery()) {
         //reset cached dataset
         if (DACResult.d->Query.isActive() && DACResult.d->Query.isSelect()) {
             DACResult.d->WasCached = true;
@@ -427,13 +433,19 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
                                         quint64 *_executionTime)
 {
     QStringList Args;
+
     foreach(auto Item, _params)
         Args.append(Item.toString());
-    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
+
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)")
+                                                .arg(_queryStr, Args.join(","))
+                                                .toUtf8(),
+                                                QCryptographicHash::Md4)
+                       .toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
 
-    if (DACResult.isValid()) {
+    if (DACResult.isValidQuery()) {
         //reset cached dataset
         if (DACResult.d->Query.isActive() && DACResult.d->Query.isSelect()) {
             DACResult.d->WasCached = true;
@@ -532,13 +544,18 @@ clsDACResult DACImpl::callSPCacheable(quint32 _ttl,
                                       quint64 *_executionTime)
 {
     QStringList Args;
+
     foreach(auto Item, _spArgs)
         Args.append(Item.toString());
-    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_spName, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
+
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)")
+                                                .arg(_spName, Args.join(","))
+                                                .toUtf8(),QCryptographicHash::Md4)
+                       .toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
 
-    if (DACResult.isValid()) {
+    if (DACResult.isValidQuery()) {
         //reset cached dataset
         if (DACResult.d->Query.isActive() && DACResult.d->Query.isSelect()) {
             DACResult.d->WasCached = true;
