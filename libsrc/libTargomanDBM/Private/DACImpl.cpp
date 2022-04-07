@@ -196,8 +196,7 @@ qint64 DACImpl::runPreparedQuery(
         Timer.start();
         Result = _sqlQuery.exec();
         *_executionTime = static_cast<quint64>(Timer.elapsed());
-    }
-    else
+    } else
         Result = _sqlQuery.exec();
 
     if (!Result) {
@@ -213,8 +212,7 @@ qint64 DACImpl::runPreparedQuery(
 
     if (_purpose == "[NO_LOG]") {
         TargomanDebug(5, QString("[%2: Query: %1").arg(_sqlQuery.executedQuery(), _purpose).toUtf8().constData());
-    }
-    else {
+    } else {
         TargomanLogDebug(5, QString("[%2]: Query: %1").arg(_sqlQuery.executedQuery(), _purpose));
     }
 
@@ -237,8 +235,7 @@ qint64 DACImpl::runQueryMiddleware(
         _resultStorage.d->Query.clear();
         _resultStorage.d->Query = QSqlQuery(_resultStorage.d->Database);
         _resultStorage.d->AffectedRows = this->runDirectQuery(_driver, _resultStorage.d->Query, _queryStr, _purpose, _executionTime);
-    }
-    else {
+    } else {
         if (!_resultStorage.d->Query.prepare(_queryStr))
             throw exTargomanDBMUnableToPrepareQuery(_queryStr + ": " + _resultStorage.d->Query.lastError().text());
 
@@ -263,7 +260,7 @@ qint64 DACImpl::runQueryMiddleware(intfDACDriver *_driver,
         _resultStorage.d->Query.clear();
         _resultStorage.d->Query = QSqlQuery(_resultStorage.d->Database);
         _resultStorage.d->AffectedRows = this->runDirectQuery(_driver, _resultStorage.d->Query, _queryStr, _purpose, _executionTime);
-    }else {
+    } else {
         if(!_resultStorage.d->Query.prepare (_queryStr))
             throw exTargomanDBMUnableToPrepareQuery(_queryStr + ": " + _resultStorage.d->Query.lastError().text());
         for(auto ParamIter = _params.begin(); ParamIter != _params.end(); ++ParamIter)
@@ -277,9 +274,9 @@ qint64 DACImpl::runQueryMiddleware(intfDACDriver *_driver,
 
 qint64 DACImpl::runDirectQuery(intfDACDriver* _driver, QSqlQuery &_sqlQuery, const QString& _queryString, const QString& _purpose, quint64* _executionTime)
 {
-    if (_purpose == "[NO_LOG]"){
+    if (_purpose == "[NO_LOG]") {
         TargomanDebug(5, QString("[%2: Query: %1").arg(_queryString,_purpose).toUtf8().constData());
-    }else{
+    } else {
         TargomanLogDebug(5, QString("[%2]: Query: %1").arg(_queryString,_purpose));
     }
 
@@ -290,7 +287,7 @@ qint64 DACImpl::runDirectQuery(intfDACDriver* _driver, QSqlQuery &_sqlQuery, con
         Timer.start();
         Result = _sqlQuery.exec(_queryString);
         *_executionTime = static_cast<quint64>(Timer.elapsed());
-    }else
+    } else
         Result = _sqlQuery.exec(_queryString);
 
 
@@ -347,8 +344,7 @@ clsDACResult DACImpl::runQuery(
 
             if (_purpose == "[NO_LOG]") {
                 TargomanDebug(5, QString("%2: Retried QueryString: %1").arg(_queryStr,_purpose).toUtf8().constData())
-            }
-            else {
+            } else {
                 TargomanLogDebug(5, QString("%2: Retried QueryString: %1").arg(_queryStr,_purpose))
             }
 
@@ -384,9 +380,9 @@ clsDACResult DACImpl::runQuery(clsDAC &_dac,
         }catch(exTargomanDBMConnectionLost){
             if (Retries++ > 2)
                 throw;
-            if (_purpose == "[NO_LOG]"){
+            if (_purpose == "[NO_LOG]") {
                 TargomanDebug(5, QString("%2: Retried QueryString: %1").arg(_queryStr,_purpose).toUtf8().constData())
-            }else{
+            } else {
                 TargomanLogDebug(5, QString("%2: Retried QueryString: %1").arg(_queryStr,_purpose))
             }
             DBC.close();
@@ -503,7 +499,7 @@ clsDACResult DACImpl::callSP(clsDAC &_dac,
                         if (_purpose == "[NO_LOG]"){
                             TargomanDebug(6,QString("\t%1 : <%2>").arg(QString(BoundingVars.at(i)).remove(0, DEFAULT_OUTVAR_PATTERN.size()),
                                                                        BoundingResult.value(i).toString()).toUtf8().constData())
-                        }else{
+                        } else {
                             TargomanLogDebug(6,QString("\t%1 : <%2>").arg(QString(BoundingVars.at(i)).remove(0, DEFAULT_OUTVAR_PATTERN.size()),
                                                                           BoundingResult.value(i).toString()))
                         }
@@ -519,7 +515,7 @@ clsDACResult DACImpl::callSP(clsDAC &_dac,
                 throw;
             if (_purpose == "[NO_LOG]"){
                 TargomanDebug(5, QString("%2: Retried CallSP: %1").arg(_spName,_purpose).toUtf8().constData())
-            }else{
+            } else {
                 TargomanLogDebug(5, QString("%2: Retried CallSP: %1").arg(_spName,_purpose))
             }
             DBC.close();
