@@ -18,6 +18,7 @@
  ******************************************************************************/
 /**
  * @author S. Mohammad M. Ziabary <ziabary@targoman.com>
+ * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
 #ifndef TARGOMAN_DBMANAGER_PRIVATE_CLSDACPRIVATE_H
@@ -35,14 +36,11 @@
 
 namespace Targoman {
 
-namespace AAA{
-namespace Private{
+namespace AAA::Private {
 class clsAuthorization;
 }
-}
 
-namespace DBManager {
-namespace Private{
+namespace DBManager::Private {
 
 class clsDACPrivate
 {
@@ -90,7 +88,6 @@ public:
 };
 
 }
-}
-}
+} //namespace DBManager::Private
 
 #endif // TARGOMAN_DBMANAGER_PRIVATE_CLSDACPRIVATE_H

@@ -34,7 +34,7 @@ namespace Drivers {
 class clsDACDriver_PSQL : public intfDACDriver
 {
 public:
-    clsDACDriver_PSQL() { ; }
+    clsDACDriver_PSQL() {}
 
     QStringList bindSPQuery(const QString& _spName,
                             const SPParams_t &_spParams,
