@@ -41,8 +41,7 @@ class testDAC: public QObject
     Q_OBJECT
 
 private slots:
-    void test_clsDAC_execQuery_1()
-    {
+    void test_clsDAC_execQuery_1() {
         clsDAC DAC;
         clsDACResult result = DAC.execQuery(
                                   "",
@@ -50,8 +49,7 @@ private slots:
         qDebug() << result.toJson(false);
     }
 
-    void test_clsDAC_execQueryCacheable_noresult_1()
-    {
+    void test_clsDAC_execQueryCacheable_noresult_1() {
         clsDAC DAC;
         clsDACResult result = DAC.execQueryCacheable(
                                   15*60,
@@ -60,8 +58,7 @@ private slots:
         qDebug() << (result.wasCached() ? "CACHED" : "SIMPLE")
                  << result.toJson(false);
     }
-    void test_clsDAC_execQueryCacheable_noresult_2()
-    {
+    void test_clsDAC_execQueryCacheable_noresult_2() {
         clsDAC DAC;
         clsDACResult result = DAC.execQueryCacheable(
                                   15*60,
@@ -70,8 +67,7 @@ private slots:
         qDebug() << (result.wasCached() ? "CACHED" : "SIMPLE")
                  << result.toJson(false);
     }
-    void test_clsDAC_execQueryCacheable_noresult_3()
-    {
+    void test_clsDAC_execQueryCacheable_noresult_3() {
         clsDAC DAC;
         clsDACResult result = DAC.execQueryCacheable(
                                   15*60,
@@ -81,8 +77,7 @@ private slots:
                  << result.toJson(false);
     }
 
-    void test_clsDAC_execQueryCacheable_1()
-    {
+    void test_clsDAC_execQueryCacheable_1() {
         clsDAC DAC;
         clsDACResult result = DAC.execQueryCacheable(
                                   15*60,
@@ -91,8 +86,7 @@ private slots:
         qDebug() << (result.wasCached() ? "CACHED" : "SIMPLE")
                  << result.toJson(false);
     }
-    void test_clsDAC_execQueryCacheable_2()
-    {
+    void test_clsDAC_execQueryCacheable_2() {
         clsDAC DAC;
         clsDACResult result = DAC.execQueryCacheable(
                                   15*60,
@@ -101,8 +95,7 @@ private slots:
         qDebug() << (result.wasCached() ? "CACHED" : "SIMPLE")
                  << result.toJson(false);
     }
-    void test_clsDAC_execQueryCacheable_3()
-    {
+    void test_clsDAC_execQueryCacheable_3() {
         clsDAC DAC;
         clsDACResult result = DAC.execQueryCacheable(
                                   15*60,
@@ -112,8 +105,7 @@ private slots:
                  << result.toJson(false);
     }
 
-//    void test_clsDAC_runSPCacheable_1()
-//    {
+//    void test_clsDAC_runSPCacheable_1() {
 //        clsDAC DAC;
 //        clsDACResult result = DAC.callSPCacheable(
 //                                  15*60,
@@ -124,8 +116,7 @@ private slots:
 //    }
 
 private:
-    void test_1()
-    {
+    void test_1() {
         clsDAC DAC;
         qDebug() << "***************************";
         qDebug() << DAC.execQuery("", "SELECT * FROM user")
