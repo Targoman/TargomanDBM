@@ -246,6 +246,7 @@ qint64 DACImpl::runQueryMiddleware(
     }
 
     _resultStorage.d->IsValid = true;
+
     return _resultStorage.d->AffectedRows;
 }
 
@@ -269,6 +270,7 @@ qint64 DACImpl::runQueryMiddleware(intfDACDriver *_driver,
     }
 
     _resultStorage.d->IsValid = true;
+
     return _resultStorage.d->AffectedRows;
 }
 
@@ -398,13 +400,19 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
                                         quint64 *_executionTime)
 {
     QStringList Args;
+
     foreach(auto Item, _params)
         Args.append(Item.toString());
-    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
+
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)")
+                                                .arg(_queryStr, Args.join(","))
+                                                .toUtf8(),
+                                                QCryptographicHash::Md4)
+                       .toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
 
-    if (DACResult.isValid()) {
+    if (DACResult.isValidQuery()) {
         //reset cached dataset
         if (DACResult.d->Query.isActive() && DACResult.d->Query.isSelect()) {
             DACResult.d->WasCached = true;
@@ -414,7 +422,8 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
     }
 
     DACResult = this->runQuery(_dac, _queryStr, _params, _purpose, _executionTime);
-    this->Cache.insert(_ttl, CacheKey, DACResult);
+    if (DACResult.isValid())
+        this->Cache.insert(_ttl, CacheKey, DACResult);
 
     return DACResult;
 }
@@ -427,13 +436,19 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
                                         quint64 *_executionTime)
 {
     QStringList Args;
+
     foreach(auto Item, _params)
         Args.append(Item.toString());
-    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_queryStr, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
+
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)")
+                                                .arg(_queryStr, Args.join(","))
+                                                .toUtf8(),
+                                                QCryptographicHash::Md4)
+                       .toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
 
-    if (DACResult.isValid()) {
+    if (DACResult.isValidQuery()) {
         //reset cached dataset
         if (DACResult.d->Query.isActive() && DACResult.d->Query.isSelect()) {
             DACResult.d->WasCached = true;
@@ -443,7 +458,8 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
     }
 
     DACResult = this->runQuery(_dac, _queryStr, _params, _purpose, _executionTime);
-    this->Cache.insert(_ttl, CacheKey, DACResult);
+    if (DACResult.isValid())
+        this->Cache.insert(_ttl, CacheKey, DACResult);
 
     return DACResult;
 }
@@ -532,13 +548,18 @@ clsDACResult DACImpl::callSPCacheable(quint32 _ttl,
                                       quint64 *_executionTime)
 {
     QStringList Args;
+
     foreach(auto Item, _spArgs)
         Args.append(Item.toString());
-    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)").arg(_spName, Args.join(",")).toUtf8(),QCryptographicHash::Md4).toHex();
+
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)")
+                                                .arg(_spName, Args.join(","))
+                                                .toUtf8(),QCryptographicHash::Md4)
+                       .toHex();
 
     clsDACResult DACResult = this->Cache.value(CacheKey);
 
-    if (DACResult.isValid()) {
+    if (DACResult.isValidQuery()) {
         //reset cached dataset
         if (DACResult.d->Query.isActive() && DACResult.d->Query.isSelect()) {
             DACResult.d->WasCached = true;
@@ -548,7 +569,8 @@ clsDACResult DACImpl::callSPCacheable(quint32 _ttl,
     }
 
     DACResult = this->callSP(_dac, _spName, _spArgs, _purpose, _executionTime);
-    this->Cache.insert(_ttl, CacheKey, DACResult);
+    if (DACResult.isValid())
+        this->Cache.insert(_ttl, CacheKey, DACResult);
 
     return DACResult;
 }

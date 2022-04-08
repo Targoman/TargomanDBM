@@ -18,6 +18,7 @@
  ******************************************************************************/
 /**
  * @author S. Mohammad M. Ziabary <ziabary@targoman.com>
+ * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
 #include <QString>
@@ -33,8 +34,9 @@
 #ifndef TARGOMAN_DBMANAGER_DEFINITIONS_H
 #define TARGOMAN_DBMANAGER_DEFINITIONS_H
 
-namespace Targoman {
-namespace DBManager {
+class testDAC;
+
+namespace Targoman::DBManager {
 
 /**
  * \exception exTargomanDBM Base exception class for All DBmanager exceptions
@@ -128,7 +130,7 @@ public:
     bool first();
     bool isNull(int _field);
     bool isSelect();
-    bool isValid();
+    bool isValid() const;
     bool last();
     QSqlError lastError() const;
     QVariant lastInsertId() const;
@@ -148,10 +150,17 @@ public:
 
     QVariantMap spDirectOutputs(const QMap<QString, std::function<QVariant(const QVariant& _value)>> _converters = {});
     QJsonDocument toJson(bool _justSingle, const QMap<QString, std::function<QVariant(const QVariant& _value)>> _converters = {});
+
+private:
+    bool isValidQuery() const;
+
 private:
     QSharedDataPointer<Private::clsDACResultPrivate> d;
+
     friend class Targoman::DBManager::Private::DACImpl;
+    friend testDAC;
 };
-}
-}
+
+} //namespace Targoman::DBManager
+
 #endif // TARGOMAN_DBMANAGER_DEFINITIONS_H
