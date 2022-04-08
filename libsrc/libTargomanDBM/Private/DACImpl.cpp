@@ -246,6 +246,7 @@ qint64 DACImpl::runQueryMiddleware(
     }
 
     _resultStorage.d->IsValid = true;
+
     return _resultStorage.d->AffectedRows;
 }
 
@@ -269,6 +270,7 @@ qint64 DACImpl::runQueryMiddleware(intfDACDriver *_driver,
     }
 
     _resultStorage.d->IsValid = true;
+
     return _resultStorage.d->AffectedRows;
 }
 
@@ -420,7 +422,8 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
     }
 
     DACResult = this->runQuery(_dac, _queryStr, _params, _purpose, _executionTime);
-    this->Cache.insert(_ttl, CacheKey, DACResult);
+    if (DACResult.isValid())
+        this->Cache.insert(_ttl, CacheKey, DACResult);
 
     return DACResult;
 }
@@ -455,7 +458,8 @@ clsDACResult DACImpl::runQueryCacheable(quint32 _ttl,
     }
 
     DACResult = this->runQuery(_dac, _queryStr, _params, _purpose, _executionTime);
-    this->Cache.insert(_ttl, CacheKey, DACResult);
+    if (DACResult.isValid())
+        this->Cache.insert(_ttl, CacheKey, DACResult);
 
     return DACResult;
 }
@@ -565,7 +569,8 @@ clsDACResult DACImpl::callSPCacheable(quint32 _ttl,
     }
 
     DACResult = this->callSP(_dac, _spName, _spArgs, _purpose, _executionTime);
-    this->Cache.insert(_ttl, CacheKey, DACResult);
+    if (DACResult.isValid())
+        this->Cache.insert(_ttl, CacheKey, DACResult);
 
     return DACResult;
 }

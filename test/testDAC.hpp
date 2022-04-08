@@ -36,16 +36,16 @@
 
 using namespace Targoman::DBManager;
 
-class testDAC: public QObject
+class testDAC : public QObject
 {
     Q_OBJECT
 
     void showResult(clsDACResult &_result)
     {
         qDebug().noquote()
-                << "[isValid():" << (_result.isValid() ? "+YE" : "-NO") << "]"
                 << "[isValidQuery():" << (_result.isValidQuery() ? "+YE" : "-NO") << "]"
                 << "[wasCached():" << (_result.wasCached() ? "+YE" : "-NO") << "]"
+                << "[isValid():" << (_result.isValid() ? "+YE" : "-NO") << "]"
                 << "Result:" << _result.toJson(false);
     }
 
