@@ -714,4 +714,51 @@ void DACImpl::shutdown()
     }
 }
 
+bool DACImpl::invalidateCache(
+    const QString &_queryStr,
+    const QVariantList &_params
+) {
+    QStringList Args;
+
+    foreach(auto Item, _params)
+        Args.append(Item.toString());
+
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)")
+                                                .arg(_queryStr, Args.join(","))
+                                                .toUtf8(),
+                                                QCryptographicHash::Md4)
+                       .toHex();
+
+    clsDACResult DACResult = this->Cache.value(CacheKey);
+
+    if (DACResult.isValidQuery() == false)
+        return false; //not found
+
+    this->Cache.remove(CacheKey);
+    return true;
+}
+bool DACImpl::invalidateCache(
+    const QString &_queryStr,
+    const QVariantMap &_params
+) {
+    QStringList Args;
+
+    foreach(auto Item, _params)
+        Args.append(Item.toString());
+
+    QString CacheKey = QCryptographicHash::hash(QString("%1(%2)")
+                                                .arg(_queryStr, Args.join(","))
+                                                .toUtf8(),
+                                                QCryptographicHash::Md4)
+                       .toHex();
+
+    clsDACResult DACResult = this->Cache.value(CacheKey);
+
+    if (DACResult.isValidQuery() == false)
+        return false; //not found
+
+    this->Cache.remove(CacheKey);
+    return true;
+}
+
 } //namespace Targoman::DBManager::Private

@@ -210,17 +210,28 @@ QStringList clsDAC::whichTablesAreUpdated(const QStringList& _tableNames,
 }
 
 /* ----------------------------------------------- */
-bool clsDAC::areSimilar(const QSqlDatabase& _firstDBC, const QSqlDatabase& _secondDBC)
-{
+bool clsDAC::areSimilar(const QSqlDatabase& _firstDBC, const QSqlDatabase& _secondDBC) {
     return (_firstDBC.databaseName() == _secondDBC.databaseName() &&
             _firstDBC.driverName() == _secondDBC.driverName() &&
             _firstDBC.hostName() == _secondDBC.hostName() &&
             _firstDBC.port() == _secondDBC.port());
 }
 
-void clsDAC::shutdown()
-{
+void clsDAC::shutdown() {
     Private::DACImpl::instance().shutdown();
+}
+
+/*static*/ bool clsDAC::invalidateCache(
+    const QString &_queryStr,
+    const QVariantList &_params
+) {
+    return Private::DACImpl::instance().invalidateCache(_queryStr, _params);
+}
+/*static*/ bool clsDAC::invalidateCache(
+    const QString &_queryStr,
+    const QVariantMap &_params
+) {
+   return Private::DACImpl::instance().invalidateCache(_queryStr, _params);
 }
 
 /**********************************************************************************************************************/
@@ -228,23 +239,14 @@ Private::clsDACPrivate::clsDACPrivate(const QSqlDatabase& _db) :
     DB(_db),
     Driver(Private::DACImpl::instance().driver(_db.driverName()))
 { ; }
-Private::clsDACPrivate::~clsDACPrivate()
-{ ; }
-/**********************************************************************************************************************/
-Private::clsDACResultPrivate::~clsDACResultPrivate()
-{ ; }
-/**********************************************************************************************************************/
-clsDACResult::clsDACResult() : d(new Private::clsDACResultPrivate(QSqlDatabase()))
-{ ; }
 
-clsDACResult::clsDACResult(const QSqlDatabase &_dbc) : d(new Private::clsDACResultPrivate(_dbc))
-{ ; }
+Private::clsDACPrivate::~clsDACPrivate() { ; }
+Private::clsDACResultPrivate::~clsDACResultPrivate() { ; }
 
-clsDACResult::clsDACResult(const clsDACResult &_other) : d(_other.d)
-{ ; }
-
-clsDACResult::~clsDACResult()
-{ ; }
+clsDACResult::clsDACResult() : d(new Private::clsDACResultPrivate(QSqlDatabase())) { ; }
+clsDACResult::clsDACResult(const QSqlDatabase &_dbc) : d(new Private::clsDACResultPrivate(_dbc)) { ; }
+clsDACResult::clsDACResult(const clsDACResult &_other) : d(_other.d) { ; }
+clsDACResult::~clsDACResult() { ; }
 
 QJsonDocument clsDACResult::toJson(bool _justSingle, const QMap<QString, std::function<QVariant(const QVariant& _value)>> _converters)
 {
@@ -463,7 +465,6 @@ QVariantMap clsDACResult::spDirectOutputs(const QMap<QString, std::function<QVar
 
 bool clsDACResult::wasCached() const {
     return this->d->WasCached;
-
 }
 
 } //namespace Targoman::DBManager
