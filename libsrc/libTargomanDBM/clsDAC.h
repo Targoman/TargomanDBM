@@ -31,8 +31,7 @@
 
 #include "libTargomanDBM/Definitions.h"
 
-namespace Targoman {
-namespace DBManager {
+namespace Targoman::DBManager {
 
 /**
  * @class DAC
@@ -262,6 +261,15 @@ public:
      */
     static void shutdown();
 
+    static bool invalidateCache(
+        const QString &_queryStr,
+        const QVariantList &_params = QVariantList()
+    );
+    static bool invalidateCache(
+        const QString &_queryStr,
+        const QVariantMap &_params
+    );
+
 private:
     Q_DISABLE_COPY(clsDAC)
 
@@ -270,9 +278,6 @@ private:
     friend class Private::DACImpl;
 };
 
-
-}
-}
-
+} //namespace Targoman::DBManager
 
 #endif // TARGOMAN_DBMANAGER_DAC_H

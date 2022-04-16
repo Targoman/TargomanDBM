@@ -18,6 +18,7 @@
  ******************************************************************************/
 /**
  * @author S. Mohammad M. Ziabary <ziabary@targoman.com>
+ * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
 #ifndef TARGOMAN_DBMANAGER_PRIVATE_DACIMPL_H
@@ -39,14 +40,11 @@
 
 namespace Targoman {
 
-namespace AAA{
-namespace Private{
+namespace AAA::Private {
 class clsAuthorization;
 }
-}
 
-namespace DBManager {
-namespace Private{
+namespace DBManager::Private {
 
 class DACImpl : public QObject
 {
@@ -136,6 +134,15 @@ public:
     intfDACSecurity* securityProvider();
     intfDACDriver* driver(const QString _driverName);
 
+    bool invalidateCache(
+        const QString &_queryStr,
+        const QVariantList &_params
+    );
+    bool invalidateCache(
+        const QString &_queryStr,
+        const QVariantMap &_params
+    );
+
 private:
     qint64 runQueryMiddleware(intfDACDriver* _driver,
                               clsDACResult &_resultStorage,
@@ -191,7 +198,7 @@ private:
     QHash<QString, QSqlDatabase>    Registry;
 };
 
-}
-}
-}
+} //namespace DBManager::Private
+} //namespace Targoman
+
 #endif // CLSDACIMPL_H

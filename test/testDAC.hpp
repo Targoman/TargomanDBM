@@ -107,6 +107,25 @@ private slots:
                                   "SELECT 1, prdID FROM dev_Advert.tblAccountProducts");
         showResult(Result);
     }
+    void test_clsDAC_execQueryCacheable_invalidate() {
+        clsDAC::invalidateCache("SELECT 1, prdID FROM dev_Advert.tblAccountProducts");
+    }
+    void test_clsDAC_execQueryCacheable_4() {
+        clsDAC DAC;
+        clsDACResult Result = DAC.execQueryCacheable(
+                                  15*60,
+                                  "",
+                                  "SELECT 1, prdID FROM dev_Advert.tblAccountProducts");
+        showResult(Result);
+    }
+    void test_clsDAC_execQueryCacheable_5() {
+        clsDAC DAC;
+        clsDACResult Result = DAC.execQueryCacheable(
+                                  15*60,
+                                  "",
+                                  "SELECT 1, prdID FROM dev_Advert.tblAccountProducts");
+        showResult(Result);
+    }
 
 //    void test_clsDAC_runSPCacheable_1() {
 //        clsDAC DAC;
