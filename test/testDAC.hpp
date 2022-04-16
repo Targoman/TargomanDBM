@@ -36,83 +36,104 @@
 
 using namespace Targoman::DBManager;
 
-class testDAC: public QObject
+class testDAC : public QObject
 {
     Q_OBJECT
+
+    void showResult(clsDACResult &_result)
+    {
+        qDebug().noquote()
+                << "[isValidQuery():" << (_result.isValidQuery() ? "+YE" : "-NO") << "]"
+                << "[wasCached():" << (_result.wasCached() ? "+YE" : "-NO") << "]"
+                << "[isValid():" << (_result.isValid() ? "+YE" : "-NO") << "]"
+                << "Result:" << _result.toJson(false);
+    }
 
 private slots:
     void test_clsDAC_execQuery_1() {
         clsDAC DAC;
-        clsDACResult result = DAC.execQuery(
+        clsDACResult Result = DAC.execQuery(
                                   "",
                                   "SELECT 1, prdID FROM dev_Advert.tblAccountProducts");
-        qDebug() << result.toJson(false);
+        showResult(Result);
     }
 
     void test_clsDAC_execQueryCacheable_noresult_1() {
         clsDAC DAC;
-        clsDACResult result = DAC.execQueryCacheable(
+        clsDACResult Result = DAC.execQueryCacheable(
                                   15*60,
                                   "",
                                   "SELECT 1, prdID FROM dev_Advert.tblAccountProducts WHERE prdID = 0");
-        qDebug() << (result.wasCached() ? "CACHED" : "SIMPLE")
-                 << result.toJson(false);
+        showResult(Result);
     }
     void test_clsDAC_execQueryCacheable_noresult_2() {
         clsDAC DAC;
-        clsDACResult result = DAC.execQueryCacheable(
+        clsDACResult Result = DAC.execQueryCacheable(
                                   15*60,
                                   "",
                                   "SELECT 1, prdID FROM dev_Advert.tblAccountProducts WHERE prdID = 0");
-        qDebug() << (result.wasCached() ? "CACHED" : "SIMPLE")
-                 << result.toJson(false);
+        showResult(Result);
     }
     void test_clsDAC_execQueryCacheable_noresult_3() {
         clsDAC DAC;
-        clsDACResult result = DAC.execQueryCacheable(
+        clsDACResult Result = DAC.execQueryCacheable(
                                   15*60,
                                   "",
                                   "SELECT 1, prdID FROM dev_Advert.tblAccountProducts WHERE prdID = 0");
-        qDebug() << (result.wasCached() ? "CACHED" : "SIMPLE")
-                 << result.toJson(false);
+        showResult(Result);
     }
 
     void test_clsDAC_execQueryCacheable_1() {
         clsDAC DAC;
-        clsDACResult result = DAC.execQueryCacheable(
+        clsDACResult Result = DAC.execQueryCacheable(
                                   15*60,
                                   "",
                                   "SELECT 1, prdID FROM dev_Advert.tblAccountProducts");
-        qDebug() << (result.wasCached() ? "CACHED" : "SIMPLE")
-                 << result.toJson(false);
+        showResult(Result);
     }
     void test_clsDAC_execQueryCacheable_2() {
         clsDAC DAC;
-        clsDACResult result = DAC.execQueryCacheable(
+        clsDACResult Result = DAC.execQueryCacheable(
                                   15*60,
                                   "",
                                   "SELECT 1, prdID FROM dev_Advert.tblAccountProducts");
-        qDebug() << (result.wasCached() ? "CACHED" : "SIMPLE")
-                 << result.toJson(false);
+        showResult(Result);
     }
     void test_clsDAC_execQueryCacheable_3() {
         clsDAC DAC;
-        clsDACResult result = DAC.execQueryCacheable(
+        clsDACResult Result = DAC.execQueryCacheable(
                                   15*60,
                                   "",
                                   "SELECT 1, prdID FROM dev_Advert.tblAccountProducts");
-        qDebug() << (result.wasCached() ? "CACHED" : "SIMPLE")
-                 << result.toJson(false);
+        showResult(Result);
+    }
+    void test_clsDAC_execQueryCacheable_invalidate() {
+        clsDAC::invalidateCache("SELECT 1, prdID FROM dev_Advert.tblAccountProducts");
+    }
+    void test_clsDAC_execQueryCacheable_4() {
+        clsDAC DAC;
+        clsDACResult Result = DAC.execQueryCacheable(
+                                  15*60,
+                                  "",
+                                  "SELECT 1, prdID FROM dev_Advert.tblAccountProducts");
+        showResult(Result);
+    }
+    void test_clsDAC_execQueryCacheable_5() {
+        clsDAC DAC;
+        clsDACResult Result = DAC.execQueryCacheable(
+                                  15*60,
+                                  "",
+                                  "SELECT 1, prdID FROM dev_Advert.tblAccountProducts");
+        showResult(Result);
     }
 
 //    void test_clsDAC_runSPCacheable_1() {
 //        clsDAC DAC;
-//        clsDACResult result = DAC.callSPCacheable(
+//        clsDACResult Result = DAC.callSPCacheable(
 //                                  15*60,
 //                                  "",
 //                                  "dev_Advert.???");
-//        qDebug() << (result.wasCached() ? "CACHED" : "SIMPLE")
-//                 << result.toJson(false);
+//        showResult(Result);
 //    }
 
 private:

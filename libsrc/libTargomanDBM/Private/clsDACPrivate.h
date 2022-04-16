@@ -84,10 +84,10 @@ public:
     qint32          AffectedRows;
     bool            WasSP;
     bool            WasCached;
-    bool            IsValid;
+    bool            IsValid; //better to change to IsValidQuery
 };
 
-}
 } //namespace DBManager::Private
+} //namespace Targoman
 
 #endif // TARGOMAN_DBMANAGER_PRIVATE_CLSDACPRIVATE_H
