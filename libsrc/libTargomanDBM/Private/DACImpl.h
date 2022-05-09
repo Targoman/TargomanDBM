@@ -49,10 +49,11 @@ namespace DBManager::Private {
 class DACImpl : public QObject
 {
     Q_OBJECT
+
     friend class Targoman::AAA::Private::clsAuthorization;
 
 public:
-    static  DACImpl& instance() {static DACImpl* Instance = NULL; return *(Q_LIKELY(Instance) ? Instance : Instance = new DACImpl); }
+    static DACImpl& instance() {static DACImpl* Instance = NULL; return *(Q_LIKELY(Instance) ? Instance : Instance = new DACImpl); }
     ~DACImpl();
     /**
      * @brief getDBEngine A method to retrive registered DB Item. It is supposed that you have registered some
