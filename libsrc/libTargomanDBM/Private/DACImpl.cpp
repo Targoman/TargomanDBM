@@ -99,18 +99,23 @@ DACImpl::DACImpl() :
 DACImpl::~DACImpl()
 { ; }
 
-QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entityName, const QString &_target, bool _clone, enuDBEngines::Type *_engineType, bool _returnBase)
-{
+QSqlDatabase DACImpl::getDBEngine(
+    const QString &_domain,
+    const QString &_entityName,
+    const QString &_target,
+    bool _clone, enuDBEngines::Type *_engineType,
+    bool _returnBase
+) {
     QSqlDatabase DB;
 
     auto retrieveConnectionByString = [&DB, _clone, _returnBase, this](const QString& _checkStr, bool _cloneCondition = false, const QString& _clonedName = ""){
-        foreach(QString Connection, QSqlDatabase::connectionNames())
+        foreach(QString Connection, QSqlDatabase::connectionNames()) {
             if (Connection == _checkStr) {
                 if (_clone){
-                    if(_checkStr.split('_').count() == 4)
+                    if (_checkStr.split('_').count() == 4)
                         throw exTargomanDBM("Cloning target specified DB connections is not allowed");
 
-                    if(_cloneCondition) {
+                    if (_cloneCondition) {
                         DB = QSqlDatabase::cloneDatabase(QSqlDatabase::database(Connection, false),
                                                          Connection + "_" + _clonedName);
                         this->Registry.insert(Connection + "_" + _clonedName, DB);
@@ -119,7 +124,7 @@ QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entity
                 }
 
                 if (_returnBase) {
-                    DB =  QSqlDatabase::database(Connection, false);
+                    DB = QSqlDatabase::database(Connection, false);
                     break;
                 }
 
@@ -138,23 +143,30 @@ QSqlDatabase DACImpl::getDBEngine(const QString &_domain, const QString &_entity
 
                 break;
             }
+        }
     };
 
-    if(_domain.size() && _entityName.size() && _target.size())
+    if (_domain.size() && _entityName.size() && _target.size())
         retrieveConnectionByString(QString("%1_%2_%3_%4").arg(DEFAULT_DB_NAME).arg(_domain).arg(_entityName).arg(_target));
 
     if (DB.isValid() == false && _domain.size() && _entityName.size())
         retrieveConnectionByString(QString("%1_%2_%3").arg(DEFAULT_DB_NAME).arg(_domain).arg(_entityName), !_target.isEmpty(), _target);
+
     if (DB.isValid() == false && _domain.size())
         retrieveConnectionByString(QString("%1_%2").arg(DEFAULT_DB_NAME).arg(_domain), !_entityName.isEmpty() && !_target.isEmpty(), _entityName + "_" + _target);
+
     if (DB.isValid() == false)
         retrieveConnectionByString(QString("%1").arg(DEFAULT_DB_NAME), !_domain.isEmpty()&& !_entityName.isEmpty() && !_target.isEmpty(), _domain + "_" + _entityName + "_" + _target);
 
     if (DB.isValid()) {
         if (_engineType)
             *_engineType = enuDBEngines::toEnum(DB.driverName().toStdString().c_str());
+
+        DB.setConnectOptions("MYSQL_OPT_RECONNECT=1");
+
         return DB;
     }
+
     throw exTargomanDBMEngineNotSupported(QString("No DB engine registerd for %1/%2/%3").arg(
                                               _domain).arg(
                                               _entityName).arg(
