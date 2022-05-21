@@ -37,10 +37,12 @@ namespace Private {
     extern QMap<QString, QSqlDatabase> RegisteredDBs;
 }
 /* ----------------------------------------------- */
-clsDAC::clsDAC(const QString& _domain,
-               const QString& _entityName,
-               const QString& _target,
-               bool _clone) :
+clsDAC::clsDAC(
+    const QString& _domain,
+    const QString& _entityName,
+    const QString& _target,
+    bool _clone
+) :
     pPrivate(new Private::clsDACPrivate(Private::DACImpl::instance().getDBEngine(_domain, _entityName, _target, _clone)))
 { ; }
 
@@ -48,13 +50,14 @@ clsDAC::~clsDAC()
 { ; }
 
 /* ----------------------------------------------- */
-QSqlDatabase clsDAC::getDBEngine(const QString& _domain,
-                                 const QString& _entityName,
-                                 const QString& _target,
-                                 bool _clone,
-                                 enuDBEngines::Type* _engineType,
-                                 bool _returnBase)
-{
+QSqlDatabase clsDAC::getDBEngine(
+    const QString& _domain,
+    const QString& _entityName,
+    const QString& _target,
+    bool _clone,
+    enuDBEngines::Type* _engineType,
+    bool _returnBase
+) {
     return Private::DACImpl::instance().getDBEngine(_domain, _entityName, _target, _clone, _engineType, _returnBase);
 }
 
@@ -62,18 +65,19 @@ QSqlDatabase clsDAC::getDBEngine(const QString& _domain,
 void clsDAC::addDBEngine(enuDBEngines::Type _engineType,
                          const QString& _domain,
                          const QString& _entityName,
-                         const QString& _target)
-{
+                         const QString& _target
+) {
     return Private::DACImpl::instance().addDBEngine(_engineType, _domain, _entityName, _target);
 }
 
 /* ----------------------------------------------- */
-void clsDAC::setConnectionString(const QString& _conStr,
-                                 const QString& _domain,
-                                 const QString& _entityName,
-                                 const QString& _target)
-{
-    QSqlDatabase DB = Private::DACImpl::instance().getDBEngine(_domain, _entityName, _target,false,nullptr,true);
+void clsDAC::setConnectionString(
+    const QString& _conStr,
+    const QString& _domain,
+    const QString& _entityName,
+    const QString& _target
+) {
+    QSqlDatabase DB = Private::DACImpl::instance().getDBEngine(_domain, _entityName, _target, false, nullptr, true);
 
     bool Result;
 
