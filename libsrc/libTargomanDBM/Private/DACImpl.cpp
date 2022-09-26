@@ -700,11 +700,13 @@ QMutex *DACImpl::getCurrConnectionLock(const QString &_conName)
 static const QRegExp rxSQLError("^\\d{3,3}\\:.*$");
 void DACImpl::throwFormatted(const QSqlError &_error)
 {
-    if(rxSQLError.exactMatch(_error.databaseText())){
+    if (rxSQLError.exactMatch(_error.databaseText())) {
         QStringList ErrorParts = _error.databaseText().split(':');
         quint32 ErrorCode = ErrorParts.first().toUInt();
-        if(ErrorCode >= 400 || ErrorCode < 600)
-            throw exDBInternalError(static_cast<quint16>(ErrorCode), ErrorParts.last ());
+        if (ErrorCode >= 400 || ErrorCode < 600) {
+            ErrorParts.removeAt(0);
+            throw exDBInternalError(static_cast<quint16>(ErrorCode), ErrorParts.join(':'));
+        }
     }
 
     throw exTargomanDBMUnableToExecuteQuery(
